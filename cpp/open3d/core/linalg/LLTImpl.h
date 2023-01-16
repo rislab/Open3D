@@ -5,13 +5,13 @@
 namespace open3d {
 namespace core {
 
-void CholeskyCPU(void* A_data,
+void LLTCPU(void* A_data,
            int64_t cols,
            Dtype dtype,
            const Device& device);
 
 #ifdef BUILD_CUDA_MODULE
-void CholeskyCUDA(void* A_data,
+void LLTCUDA(void* A_data,
             int64_t cols,
             Dtype dtype,
             const Device& device);

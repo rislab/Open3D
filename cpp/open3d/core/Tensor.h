@@ -1095,7 +1095,7 @@ public:
     ///
     /// \param permute_l [optional input] If true: returns L as P * L.
     /// \return Tuple (P, L, U).
-    Tensor Cholesky() const;
+    Tensor LLT() const;
 
     /// \brief Returns the upper triangular matrix of the 2D tensor,
     /// above the given diagonal index. [The value of diagonal = col - row,

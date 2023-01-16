@@ -1,11 +1,11 @@
-#include "open3d/core/linalg/CholeskyImpl.h"
+#include "open3d/core/linalg/LLTImpl.h"
 #include "open3d/core/linalg/LapackWrapper.h"
 #include "open3d/core/linalg/LinalgUtils.h"
 
 namespace open3d {
 namespace core {
 
-void CholeskyCPU(void* A_data,
+void LLTCPU(void* A_data,
            int64_t cols,
            Dtype dtype,
            const Device& device) {
@@ -14,7 +14,7 @@ void CholeskyCPU(void* A_data,
     	      potrf_cpu<scalar_t>(
                         LAPACK_COL_MAJOR, cols,
                         static_cast<scalar_t*>(A_data), cols),
-                "getrf failed in CholeskyCPU");
+                "getrf failed in LLTCPU");
     });
 }
 
