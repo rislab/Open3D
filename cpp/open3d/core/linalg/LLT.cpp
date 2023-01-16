@@ -7,8 +7,8 @@
 namespace open3d {
 namespace core {
 
-// Decompose output in P, L, U matrix form.
-void LLTHelper(const Tensor& A, Tensor& output) {
+// Return L matrix
+void LLT(const Tensor& A, Tensor& L) {
     AssertTensorDtypes(A, {Float32, Float64});
 
     const Device device = A.GetDevice();
@@ -29,14 +29,11 @@ void LLTHelper(const Tensor& A, Tensor& output) {
 
     // "output" tensor is modified in-place as output.
     // Operations are COL_MAJOR.
-    output = A.T().Clone();
+    Tensor output = A.T().Clone();
     void* A_data = output.GetDataPtr();
 
     // Returns LLT decomposition in form of an output matrix,
-    // with lower triangular elements as L, upper triangular and diagonal
-    // elements as U, (diagonal elements of L are unity), and ipiv array,
-    // which has the pivot indices (for 1 <= i <= min(M,N), row i of the
-    // matrix was interchanged with row IPIV(i).
+    // with lower triangular elements as L.
     if (device.IsCUDA()) {
 #ifdef BUILD_CUDA_MODULE
         LLTCUDA(A_data, cols, dtype, device);
@@ -50,25 +47,8 @@ void LLTHelper(const Tensor& A, Tensor& output) {
 
     // COL_MAJOR -> ROW_MAJOR.
     output = output.T().Contiguous();
+    Tril(output, L, 0);
 }
 
-static void OutputToL(const Tensor& output,
-		      Tensor& lower)
-{
-    // Get upper and lower matrix from output matrix.
-    Tril(output, lower, 0);
-}
-
-void LLT(const Tensor& A,
-	      Tensor& L) {
-    AssertTensorDtypes(A, {Float32, Float64});
-
-    core::Tensor lower;
-
-    // Get output matrix and ipiv.
-    LLTHelper(A, lower);
-
-    OutputToL(lower, L);
-}
 }  // namespace core
 }  // namespace open3d
