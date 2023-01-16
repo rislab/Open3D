@@ -45,6 +45,7 @@
 #include "open3d/core/linalg/Det.h"
 #include "open3d/core/linalg/Inverse.h"
 #include "open3d/core/linalg/LU.h"
+#include "open3d/core/linalg/Cholesky.h"
 #include "open3d/core/linalg/LeastSquares.h"
 #include "open3d/core/linalg/Matmul.h"
 #include "open3d/core/linalg/SVD.h"
@@ -1898,6 +1899,14 @@ std::tuple<Tensor, Tensor> Tensor::LUIpiv() const {
     core::Tensor ipiv, output;
     core::LUIpiv(*this, ipiv, output);
     return std::make_tuple(ipiv, output);
+}
+
+Tensor Tensor::Cholesky() const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+
+    core::Tensor lower;
+    core::Cholesky(*this, lower);
+    return lower;
 }
 
 Tensor Tensor::Triu(const int diagonal) const {

@@ -1088,6 +1088,15 @@ public:
     /// main diagonal (diagonal elements of L to be taken as unity).
     std::tuple<Tensor, Tensor> LUIpiv() const;
 
+    /// \brief Computes Cholesky factorisation of the 2D square tensor,
+    /// using A = P * L * U; where P is the permutation matrix, L is the
+    /// lower-triangular matrix with diagonal elements as 1.0 and U is the
+    /// upper-triangular matrix, and returns tuple (P, L, U).
+    ///
+    /// \param permute_l [optional input] If true: returns L as P * L.
+    /// \return Tuple (P, L, U).
+    Tensor Cholesky() const;
+
     /// \brief Returns the upper triangular matrix of the 2D tensor,
     /// above the given diagonal index. [The value of diagonal = col - row,
     /// therefore 0 is the main diagonal (row = col), and it shifts towards

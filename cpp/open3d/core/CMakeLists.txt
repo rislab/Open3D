@@ -63,6 +63,8 @@ target_sources(core PRIVATE
     linalg/LeastSquaresCPU.cpp
     linalg/LU.cpp
     linalg/LUCPU.cpp
+    linalg/Cholesky.cpp
+    linalg/CholeskyCPU.cpp
     linalg/Matmul.cpp
     linalg/MatmulCPU.cpp
     linalg/Solve.cpp
@@ -98,6 +100,7 @@ if (BUILD_CUDA_MODULE)
         linalg/LeastSquaresCUDA.cpp
         linalg/LinalgUtils.cpp
         linalg/LUCUDA.cpp
+        linalg/CholeskyCUDA.cpp
         linalg/MatmulCUDA.cpp
         linalg/SolveCUDA.cpp
         linalg/SVDCUDA.cpp

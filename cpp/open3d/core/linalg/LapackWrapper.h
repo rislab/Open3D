@@ -235,6 +235,13 @@ inline cusolverStatus_t getrf_cuda_buffersize(
 }
 
 template <typename scalar_t>
+inline cusolverStatus_t potrf_cuda_buffersize(
+        cusolverDnHandle_t handle, int n, int lda, int* len) {
+    utility::LogError("Unsupported data type.");
+    return CUSOLVER_STATUS_INTERNAL_ERROR;
+}
+
+template <typename scalar_t>
 inline cusolverStatus_t getrf_cuda(cusolverDnHandle_t handle,
                                    int m,
                                    int n,
@@ -242,6 +249,18 @@ inline cusolverStatus_t getrf_cuda(cusolverDnHandle_t handle,
                                    int lda,
                                    scalar_t* workspace,
                                    int* ipiv_data,
+                                   int* dinfo) {
+    utility::LogError("Unsupported data type.");
+    return CUSOLVER_STATUS_INTERNAL_ERROR;
+}
+
+template <typename scalar_t>
+inline cusolverStatus_t potrf_cuda(cusolverDnHandle_t handle,
+                                   int n,
+                                   scalar_t* A_data,
+                                   int lda,
+                                   scalar_t* workspace,
+                                   int Lwork,
                                    int* dinfo) {
     utility::LogError("Unsupported data type.");
     return CUSOLVER_STATUS_INTERNAL_ERROR;
@@ -359,6 +378,18 @@ inline cusolverStatus_t getrf_cuda_buffersize<double>(
 }
 
 template <>
+inline cusolverStatus_t potrf_cuda_buffersize<float>(
+        cusolverDnHandle_t handle, int n, int lda, int* len) {
+  return cusolverDnSpotrf_bufferSize(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n, NULL, lda, len);
+}
+
+template <>
+inline cusolverStatus_t potrf_cuda_buffersize<double>(
+        cusolverDnHandle_t handle, int n, int lda, int* len) {
+    return cusolverDnDpotrf_bufferSize(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n, NULL, lda, len);
+}
+
+template <>
 inline cusolverStatus_t getrf_cuda<float>(cusolverDnHandle_t handle,
                                           int m,
                                           int n,
@@ -372,6 +403,18 @@ inline cusolverStatus_t getrf_cuda<float>(cusolverDnHandle_t handle,
 }
 
 template <>
+inline cusolverStatus_t potrf_cuda<float>(cusolverDnHandle_t handle,
+                                          int n,
+                                          float* A_data,
+                                          int lda,
+                                          float* workspace,
+                                          int Lwork,
+                                          int* dinfo) {
+  return cusolverDnSpotrf(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n, A_data, lda,
+			  workspace, Lwork, dinfo);
+}
+
+template <>
 inline cusolverStatus_t getrf_cuda<double>(cusolverDnHandle_t handle,
                                            int m,
                                            int n,
@@ -382,6 +425,18 @@ inline cusolverStatus_t getrf_cuda<double>(cusolverDnHandle_t handle,
                                            int* dinfo) {
     return cusolverDnDgetrf(handle, m, n, A_data, lda, workspace, ipiv_data,
                             dinfo);
+}
+
+template <>
+inline cusolverStatus_t potrf_cuda<double>(cusolverDnHandle_t handle,
+                                           int n,
+                                           double* A_data,
+                                           int lda,
+                                           double* workspace,
+                                           int Lwork,
+                                           int* dinfo) {
+    return cusolverDnDpotrf(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n, A_data, lda,
+			    workspace, Lwork, dinfo);
 }
 
 template <>
