@@ -762,6 +762,12 @@ public:
     /// Element-wise base-e exponential of a tensor, in-place.
     Tensor Exp_();
 
+    /// Element-wise logarithm of a tensor, returning a new tensor.
+    Tensor Log() const;
+
+    /// Element-wise base-e logarithm of a tensor, in-place.
+    Tensor Log_();
+
     /// Element-wise absolute value of a tensor, returning a new tensor.
     Tensor Abs() const;
 
