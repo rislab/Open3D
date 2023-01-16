@@ -40,22 +40,35 @@ void CholeskyHelper(const Tensor& A, Tensor& output) {
     if (device.IsCUDA()) {
 #ifdef BUILD_CUDA_MODULE
         CholeskyCUDA(A_data, cols, dtype, device);
-	output = output.T().Contiguous();
 #else
         utility::LogInfo("Unimplemented device.");
 #endif
     }
+    else {
+      CholeskyCPU(A_data, cols, dtype, device);
+    }
 
     // COL_MAJOR -> ROW_MAJOR.
-    //output = output.T().Contiguous();
+    output = output.T().Contiguous();
+}
+
+static void OutputToL(const Tensor& output,
+		      Tensor& lower)
+{
+    // Get upper and lower matrix from output matrix.
+    Tril(output, lower, 0);
 }
 
 void Cholesky(const Tensor& A,
-	      Tensor& lower) {
+	      Tensor& L) {
     AssertTensorDtypes(A, {Float32, Float64});
+
+    core::Tensor lower;
 
     // Get output matrix and ipiv.
     CholeskyHelper(A, lower);
+
+    OutputToL(lower, L);
 }
 }  // namespace core
 }  // namespace open3d

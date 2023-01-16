@@ -44,6 +44,15 @@ inline OPEN3D_CPU_LINALG_INT getrf_cpu(int layout,
 }
 
 template <typename scalar_t>
+inline OPEN3D_CPU_LINALG_INT potrf_cpu(int layout,
+                                       OPEN3D_CPU_LINALG_INT n,
+                                       scalar_t* A_data,
+                                       OPEN3D_CPU_LINALG_INT lda) {
+    utility::LogError("Unsupported data type.");
+    return -1;
+}
+
+template <typename scalar_t>
 inline OPEN3D_CPU_LINALG_INT getri_cpu(int layout,
                                        OPEN3D_CPU_LINALG_INT n,
                                        scalar_t* A_data,
@@ -118,6 +127,24 @@ inline OPEN3D_CPU_LINALG_INT getrf_cpu<double>(
         OPEN3D_CPU_LINALG_INT lda,
         OPEN3D_CPU_LINALG_INT* ipiv_data) {
     return LAPACKE_dgetrf(layout, m, n, A_data, lda, ipiv_data);
+}
+
+template <>
+inline OPEN3D_CPU_LINALG_INT potrf_cpu<float>(
+        int layout,
+        OPEN3D_CPU_LINALG_INT n,
+        float* A_data,
+        OPEN3D_CPU_LINALG_INT lda) {
+    return LAPACKE_spotrf(layout, 'L', n, A_data, lda);
+}
+
+template <>
+inline OPEN3D_CPU_LINALG_INT potrf_cpu<double>(
+        int layout,
+        OPEN3D_CPU_LINALG_INT n,
+        double* A_data,
+        OPEN3D_CPU_LINALG_INT lda) {
+    return LAPACKE_dpotrf(layout, 'L', n, A_data, lda);
 }
 
 template <>

@@ -6,8 +6,6 @@ namespace open3d {
 namespace core {
 
 void CholeskyCPU(void* A_data,
-           void* ipiv_data,
-           int64_t rows,
            int64_t cols,
            Dtype dtype,
            const Device& device);
