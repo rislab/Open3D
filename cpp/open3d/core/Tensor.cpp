@@ -50,6 +50,7 @@
 #include "open3d/core/linalg/Matmul.h"
 #include "open3d/core/linalg/SVD.h"
 #include "open3d/core/linalg/Solve.h"
+#include "open3d/core/linalg/SolveLLT.h"
 #include "open3d/core/linalg/Tri.h"
 #include "open3d/t/io/NumpyIO.h"
 #include "open3d/utility/Logging.h"
@@ -1872,6 +1873,16 @@ Tensor Tensor::Solve(const Tensor& rhs) const {
 
     Tensor output;
     core::Solve(*this, rhs, output);
+    return output;
+}
+
+Tensor Tensor::SolveLLT(const Tensor& rhs) const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::SolveLLT(*this, rhs, output);
     return output;
 }
 

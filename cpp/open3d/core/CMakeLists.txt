@@ -68,7 +68,9 @@ target_sources(core PRIVATE
     linalg/Matmul.cpp
     linalg/MatmulCPU.cpp
     linalg/Solve.cpp
+    linalg/SolveLLT.cpp
     linalg/SolveCPU.cpp
+    linalg/SolveCPULLT.cpp
     linalg/SVD.cpp
     linalg/SVDCPU.cpp
     linalg/Tri.cpp
@@ -103,6 +105,7 @@ if (BUILD_CUDA_MODULE)
         linalg/LLTCUDA.cpp
         linalg/MatmulCUDA.cpp
         linalg/SolveCUDA.cpp
+        linalg/SolveCUDALLT.cpp
         linalg/SVDCUDA.cpp
         linalg/TriCUDA.cu
         nns/FixedRadiusSearchOps.cu
