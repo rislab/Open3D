@@ -344,6 +344,11 @@ void UnaryEWCPU(const Tensor& src, Tensor& dst, UnaryEWOpCode op_code) {
                                                        CPUExpElementKernel,
                                                        &ispc_indexer));
                     break;
+                case UnaryEWOpCode::Log:
+                    assert_dtype_is_float(src_dtype);
+                    LaunchUnaryEWKernel<scalar_t, scalar_t>(
+                            indexer, CPULogElementKernel<scalar_t>);
+                    break;
                 case UnaryEWOpCode::Abs:
                     LaunchUnaryEWKernel<scalar_t, scalar_t>(
                             indexer, CPUAbsElementKernel<scalar_t>,
