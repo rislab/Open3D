@@ -1,4 +1,4 @@
-#include "open3d/core/linalg/SolveLLT.h"
+#include "open3d/core/linalg/SolveLLTBatched.h"
 
 #ifdef BUILD_CUDA_MODULE
 #include <cuda_runtime_api.h>
@@ -38,6 +38,7 @@ void SolveLLTBatched(const Tensor &A, const Tensor &B, Tensor &X) {
         utility::LogError("Tensor A and B's dimension mismatch.");
     }
 
+    int64_t batch_size = A_shape[0];
     int64_t n = A_shape[1];
     int64_t k = B_shape[1];
     if (n == 0 || k == 0) {
@@ -60,7 +61,7 @@ void SolveLLTBatched(const Tensor &A, const Tensor &B, Tensor &X) {
         utility::LogError("Unimplemented device.");
 #endif
     } else {
-        SolveCPULLTBatched(A_data, B_data, n, k, dtype, device);
+        SolveCPULLTBatched(A_data, B_data, batch_size, n, k, dtype, device);
     }
     X = X.Transpose(1,2);
 }
