@@ -1065,6 +1065,10 @@ public:
     /// A must be a square matrix.
     Tensor SolveLLT(const Tensor& rhs) const;
 
+    /// Solves the linear system AX = B with LLT decomposition and returns X.
+    /// A must be a square matrix.
+    Tensor SolveLLTBatched(const Tensor& rhs) const;
+
     /// Solves the linear system AX = B with QR decomposition and returns X.
     /// A is a (m, n) matrix with m >= n.
     Tensor LeastSquares(const Tensor& rhs) const;

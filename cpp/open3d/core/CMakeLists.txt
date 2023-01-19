@@ -73,6 +73,8 @@ target_sources(core PRIVATE
     linalg/SolveLLT.cpp
     linalg/SolveCPU.cpp
     linalg/SolveCPULLT.cpp
+    linalg/SolveLLTBatched.cpp
+    linalg/SolveCPULLTBatched.cpp
     linalg/SVD.cpp
     linalg/SVDCPU.cpp
     linalg/Tri.cpp

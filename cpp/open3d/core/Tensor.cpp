@@ -46,6 +46,7 @@
 #include "open3d/core/linalg/Inverse.h"
 #include "open3d/core/linalg/LU.h"
 #include "open3d/core/linalg/LLT.h"
+#include "open3d/core/linalg/SolveLLTBatched.h"
 #include "open3d/core/linalg/LLTBatched.h"
 #include "open3d/core/linalg/LeastSquares.h"
 #include "open3d/core/linalg/Matmul.h"
@@ -1884,6 +1885,16 @@ Tensor Tensor::SolveLLT(const Tensor& rhs) const {
 
     Tensor output;
     core::SolveLLT(*this, rhs, output);
+    return output;
+}
+
+Tensor Tensor::SolveLLTBatched(const Tensor& rhs) const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::SolveLLTBatched(*this, rhs, output);
     return output;
 }
 
