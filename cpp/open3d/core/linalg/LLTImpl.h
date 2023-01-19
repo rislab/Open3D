@@ -1,6 +1,6 @@
 #pragma once
 
-#include "open3d/core/linalg/LU.h"
+#include "open3d/core/linalg/LLT.h"
 
 namespace open3d {
 namespace core {

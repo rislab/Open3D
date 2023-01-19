@@ -43,5 +43,7 @@ void Triul(const Tensor& A,
            Tensor& lower,
            const int diagonal = 0);
 
+void Tril3D(const Tensor& A, Tensor& output, const int diagonal = 0);
+
 }  // namespace core
 }  // namespace open3d

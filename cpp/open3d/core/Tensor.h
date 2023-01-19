@@ -1093,13 +1093,19 @@ public:
     std::tuple<Tensor, Tensor> LUIpiv() const;
 
     /// \brief Computes Cholesky factorisation of the 2D square tensor,
-    /// using A = P * L * U; where P is the permutation matrix, L is the
-    /// lower-triangular matrix with diagonal elements as 1.0 and U is the
-    /// upper-triangular matrix, and returns tuple (P, L, U).
+    /// using A = L * L^T; where L is the
+    /// lower-triangular matrix. This function returns L.
     ///
-    /// \param permute_l [optional input] If true: returns L as P * L.
-    /// \return Tuple (P, L, U).
+    /// \return L.
     Tensor LLT() const;
+
+    /// \brief Computes Cholesky factorisation of the 3D square tensor,
+    /// using A = L * L^T; where L is the
+    /// lower-triangular matrix, for every A along 1- and 2-dimes of
+    /// input tensor. This function returns a 3D tensor with all the L matrices.
+    ///
+    /// \return 3D tensor containing the L matrices.
+    Tensor LLTBatched() const;
 
     /// \brief Returns the upper triangular matrix of the 2D tensor,
     /// above the given diagonal index. [The value of diagonal = col - row,
@@ -1122,6 +1128,17 @@ public:
     /// \param diagonal value of [col - row], below which the elements are to be
     /// taken for lower triangular matrix.
     Tensor Tril(const int diagonal = 0) const;
+
+    /// \brief Returns the lower triangular matrix of the 3D tensor,
+    /// above the given diagonal index. [The value of diagonal = col - row,
+    /// therefore 0 is the main diagonal (row = col), and it shifts towards
+    /// right for positive values (for diagonal = 1, col - row = 1), and towards
+    /// left for negative values. The value of the diagonal parameter must be
+    /// between [-m, n] where {l, m, n} is the shape of input tensor.
+    ///
+    /// \param diagonal value of [col - row], below which the elements are to be
+    /// taken for lower triangular matrix.
+    Tensor Tril3D(const int diagonal = 0) const;
 
     /// \brief Returns the tuple of upper and lower triangular matrix
     /// of the 2D tensor, above and below the given diagonal index.

@@ -14,7 +14,7 @@ void LLTCPU(void* A_data,
     	      potrf_cpu<scalar_t>(
                         LAPACK_COL_MAJOR, cols,
                         static_cast<scalar_t*>(A_data), cols),
-                "getrf failed in LLTCPU");
+                "potrf failed in LLTCPU");
     });
 }
 

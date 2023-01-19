@@ -46,6 +46,7 @@
 #include "open3d/core/linalg/Inverse.h"
 #include "open3d/core/linalg/LU.h"
 #include "open3d/core/linalg/LLT.h"
+#include "open3d/core/linalg/LLTBatched.h"
 #include "open3d/core/linalg/LeastSquares.h"
 #include "open3d/core/linalg/Matmul.h"
 #include "open3d/core/linalg/SVD.h"
@@ -1920,6 +1921,14 @@ Tensor Tensor::LLT() const {
     return lower;
 }
 
+Tensor Tensor::LLTBatched() const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+
+    core::Tensor lower;
+    core::LLTBatched(*this, lower);
+    return lower;
+}
+
 Tensor Tensor::Triu(const int diagonal) const {
     Tensor output;
     core::Triu(*this, output, diagonal);
@@ -1929,6 +1938,12 @@ Tensor Tensor::Triu(const int diagonal) const {
 Tensor Tensor::Tril(const int diagonal) const {
     Tensor output;
     core::Tril(*this, output, diagonal);
+    return output;
+}
+
+Tensor Tensor::Tril3D(const int diagonal) const {
+    Tensor output;
+    core::Tril3D(*this, output, diagonal);
     return output;
 }
 
