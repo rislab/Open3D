@@ -12,11 +12,19 @@ void SolveCPULLT(void* A_data,
               Dtype dtype,
               const Device& device) {
     DISPATCH_LINALG_DTYPE_TO_TEMPLATE(dtype, [&]() {
+
         OPEN3D_LAPACK_CHECK(
-                potrs_cpu<scalar_t>(
-                        LAPACK_COL_MAJOR, n, k, static_cast<scalar_t*>(A_data),
-                        n, static_cast<scalar_t*>(B_data), n),
-                "potrs failed in SolveCPULLT");
+	  potrf_cpu<scalar_t>(
+	    LAPACK_COL_MAJOR, n,
+	    static_cast<scalar_t*>(A_data), n),
+	  "potrf failed in LLTCPU called by SolveCPULLT");
+
+        OPEN3D_LAPACK_CHECK(
+	  potrs_cpu<scalar_t>(
+	    LAPACK_COL_MAJOR, n, k, static_cast<scalar_t*>(A_data),
+	    n, static_cast<scalar_t*>(B_data), n),
+	  "potrs failed in SolveCPULLT");
+
     });
 }
 
