@@ -105,7 +105,7 @@ if (BUILD_CUDA_MODULE)
         linalg/LinalgUtils.cpp
         linalg/LUCUDA.cpp
         linalg/LLTCUDA.cpp
-        linalg/LLTCUDABatched.cpp
+        linalg/LLTCUDABatched.cu
         linalg/MatmulCUDA.cpp
         linalg/SolveCUDA.cpp
         linalg/SolveCUDALLT.cpp

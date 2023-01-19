@@ -37,8 +37,7 @@ void LLTBatched(const Tensor& A, Tensor& L) {
     // with lower triangular elements as L.
     if (device.IsCUDA()) {
 #ifdef BUILD_CUDA_MODULE
-        // LLTBatchedCUDA(A_data, batch_size, cols, dtype, device);
-        utility::LogInfo("Unimplemented device.");
+        LLTBatchedCUDA(A_data, batch_size, cols, dtype, device);
 #else
         utility::LogInfo("Unimplemented device.");
 #endif
