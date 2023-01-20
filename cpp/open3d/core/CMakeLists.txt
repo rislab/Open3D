@@ -68,6 +68,7 @@ target_sources(core PRIVATE
     linalg/LLTBatched.cpp
     linalg/LLTCPUBatched.cpp
     linalg/Matmul.cpp
+    linalg/MatmulBatched.cpp
     linalg/MatmulCPU.cpp
     linalg/Solve.cpp
     linalg/SolveLLT.cpp
@@ -109,6 +110,7 @@ if (BUILD_CUDA_MODULE)
         linalg/LLTCUDA.cpp
         linalg/LLTCUDABatched.cu
         linalg/MatmulCUDA.cpp
+        linalg/MatmulBatchedCUDA.cpp
         linalg/SolveCUDA.cpp
         linalg/SolveCUDALLT.cpp
         linalg/SVDCUDA.cpp

@@ -50,6 +50,7 @@
 #include "open3d/core/linalg/LLTBatched.h"
 #include "open3d/core/linalg/LeastSquares.h"
 #include "open3d/core/linalg/Matmul.h"
+#include "open3d/core/linalg/MatmulBatched.h"
 #include "open3d/core/linalg/SVD.h"
 #include "open3d/core/linalg/Solve.h"
 #include "open3d/core/linalg/SolveLLT.h"
@@ -1868,6 +1869,15 @@ Tensor Tensor::Matmul(const Tensor& rhs) const {
     return output;
 }
 
+Tensor Tensor::MatmulBatched(const Tensor& rhs) const {
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::MatmulBatched(*this, rhs, output);
+    return output;
+}
+
 Tensor Tensor::Solve(const Tensor& rhs) const {
     AssertTensorDtypes(*this, {Float32, Float64});
     AssertTensorDevice(rhs, GetDevice());
@@ -1895,6 +1905,7 @@ Tensor Tensor::SolveLLTBatched(const Tensor& rhs) const {
 
     Tensor output;
     core::SolveLLTBatched(*this, rhs, output);
+
     return output;
 }
 

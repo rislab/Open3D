@@ -1057,6 +1057,13 @@ public:
     /// result.
     Tensor Matmul(const Tensor& rhs) const;
 
+    /// Computes matrix multiplication with *this and rhs and returns the
+    /// result. In this case, *this and rhs should be 3D tensors of the
+    /// same first dimension.
+    /// For example, if *this is (L, M, K) and rhs is (L, K, N),
+    /// then the result is shaped (L, M, N).
+    Tensor MatmulBatched(const Tensor& rhs) const;
+
     /// Solves the linear system AX = B with LU decomposition and returns X.
     /// A must be a square matrix.
     Tensor Solve(const Tensor& rhs) const;
