@@ -5,14 +5,16 @@
 namespace open3d {
 namespace core {
 
-/// Solve AX = B with LLT decomposition. A is a square matrix.
-void SolveLLTBatched(const Tensor& A, const Tensor& B, Tensor& X);
+/// Solve AX = B with LLT decomposition in a batched fashion.
+/// A is a pointer to a tensor that containes many square matrices.
+void SolveLLTBatched(const Tensor& A,
+                     const Tensor& B,
+                     Tensor& X);
 
 void SolveCPULLTBatched(void* A_data,
                         void* B_data,
                         int64_t batch_size,
-                        int64_t n,
-                        int64_t k,
+                        int64_t cols,
                         Dtype dtype,
                         const Device& device);
 
@@ -20,8 +22,7 @@ void SolveCPULLTBatched(void* A_data,
 void SolveCUDALLTBatched(void* A_data,
                          void* B_data,
                          int64_t batch_size,
-                         int64_t n,
-                         int64_t k,
+                         int64_t cols,
                          Dtype dtype,
                          const Device& device);
 #endif

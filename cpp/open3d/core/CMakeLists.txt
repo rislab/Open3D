@@ -113,6 +113,7 @@ if (BUILD_CUDA_MODULE)
         linalg/MatmulBatchedCUDA.cpp
         linalg/SolveCUDA.cpp
         linalg/SolveCUDALLT.cpp
+        linalg/SolveCUDALLTBatched.cu
         linalg/SVDCUDA.cpp
         linalg/TriCUDA.cu
         nns/FixedRadiusSearchOps.cu
