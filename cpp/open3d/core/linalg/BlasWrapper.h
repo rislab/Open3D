@@ -90,6 +90,7 @@ inline void gemm_cpu<float>(CBLAS_LAYOUT layout,
                 ldb, beta, C_data, ldc);
 }
 
+/*
 template <>
 inline void gemm_cpu_batch<float>(CBLAS_LAYOUT layout,
                                   const CBLAS_TRANSPOSE *trans_A,
@@ -110,6 +111,7 @@ inline void gemm_cpu_batch<float>(CBLAS_LAYOUT layout,
     cblas_sgemm_batch(layout, trans_A, trans_B, m, n, k, alpha, A_data, lda,
                       B_data, ldb, beta, C_data, ldc, group_count, group_size);
 }
+*/
 
 template <>
 inline void gemm_cpu<double>(CBLAS_LAYOUT layout,
@@ -130,6 +132,7 @@ inline void gemm_cpu<double>(CBLAS_LAYOUT layout,
                 ldb, beta, C_data, ldc);
 }
 
+/*
 template <>
 inline void gemm_cpu_batch<double>(CBLAS_LAYOUT layout,
                                    const CBLAS_TRANSPOSE *trans_A,
@@ -150,6 +153,7 @@ inline void gemm_cpu_batch<double>(CBLAS_LAYOUT layout,
     cblas_dgemm_batch(layout, trans_A, trans_B, m, n, k, alpha, A_data, lda,
                       B_data, ldb, beta, C_data, ldc, group_count, group_size);
 }
+*/
 
 #ifdef BUILD_CUDA_MODULE
 template <typename scalar_t>
