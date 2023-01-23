@@ -35,12 +35,13 @@ void SolveCUDALLTBatched(void* A_data,
         cusolverStatus_t potrf_batched_status = potrf_cuda_batched<scalar_t>(
                 handle, cols, A_array, cols, info_array, batch_size);
 
-        MemoryManager::Free(info_array, device);
-        MemoryManager::Free(A_array, device);
 
         OPEN3D_CUSOLVER_CHECK_WITH_INFO_ARRAY(
                 potrf_batched_status, "potrfBatched failed in LLTCUDABatched",
                 info_array, batch_size, device);
+
+        MemoryManager::Free(info_array, device);
+        MemoryManager::Free(A_array, device);
         // end batched LLT for A_data
 
         Blob dinfo(sizeof(int), device);

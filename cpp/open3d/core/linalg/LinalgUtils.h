@@ -97,7 +97,7 @@ inline void OPEN3D_CUSOLVER_CHECK_WITH_INFO_ARRAY(cusolverStatus_t status,
                                                   int batch_size,
                                                   const Device& device) {
     int hinfo[batch_size];
-    MemoryManager::MemcpyToHost(&hinfo, info_array, device,
+    MemoryManager::MemcpyToHost(hinfo, info_array, device,
                                 batch_size * sizeof(int));
     for (int i = 0; i < batch_size; i++) {
         if (status != CUSOLVER_STATUS_SUCCESS) {
