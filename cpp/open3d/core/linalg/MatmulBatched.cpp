@@ -35,12 +35,10 @@ void MatmulBatched(const Tensor& A, const Tensor& B, Tensor& output) {
         utility::LogError("Tensor A columns {} mismatch with Tensor B rows {}.",
                           A_shape[2], B_shape[1]);
     }
-    if (B_shape[0] != A_shape[0]) {
-        utility::LogError("Tensor A and B's first dimension mismatch.");
-    }
 
     // Dispatch to backends
-    int batch_size = A_shape[0];
+    int batch_size = std::max(A_shape[0], B_shape[0]);
+
     int64_t m = A_shape[1];
     int64_t k = A_shape[2];
     int64_t n = B_shape[2];
@@ -60,7 +58,20 @@ void MatmulBatched(const Tensor& A, const Tensor& B, Tensor& output) {
 
     if (device.IsCUDA()) {
 #ifdef BUILD_CUDA_MODULE
-        MatmulBatchedCUDA(B_data, A_data, C_data, n, k, m, dtype, batch_size);
+        if (A_shape[0] == B_shape[0]) {
+            MatmulBatchedCUDA(B_data, A_data, C_data, n, k, m, dtype,
+                              batch_size);
+        } else {
+            if (A_shape[0] == 1) {
+                MatmulBatchedCUDA(B_data, A_data, C_data, n, k, m, dtype, n * k,
+                                  0, m * n, batch_size);
+            } else if (B_shape[0] == 1) {
+                MatmulBatchedCUDA(B_data, A_data, C_data, n, k, m, dtype, 0,
+                                  k * m, m * n, batch_size);
+            } else {
+                utility::LogError("Unimplemented MatmulBatched call.");
+            }
+        }
 #else
         utility::LogError("Unimplemented device.");
 #endif
