@@ -692,6 +692,11 @@ public:
     /// \param keepdim If true, the reduced dims will be retained as size 1.
     Tensor Sum(const SizeVector& dims, bool keepdim = false) const;
 
+    /// Returns the sum of the tensor and fills it in out along the given \p dims.
+    /// \param dims A list of dimensions to be reduced.
+    /// \param keepdim If true, the reduced dims will be retained as size 1.
+    void Sum_(const SizeVector& dims, bool keepdim, Tensor& dst) const;
+
     /// Returns the mean of the tensor along the given \p dims.
     /// \param dims A list of dimensions to be reduced.
     /// \param keepdim If true, the reduced dims will be retained as size 1.
@@ -711,6 +716,11 @@ public:
     /// \param dims A list of dimensions to be reduced.
     /// \param keepdim If true, the reduced dims will be retained as size 1.
     Tensor Max(const SizeVector& dims, bool keepdim = false) const;
+
+    /// Returns max of the tensor along the given \p dims and puts it in dst.
+    /// \param dims A list of dimensions to be reduced.
+    /// \param keepdim If true, the reduced dims will be retained as size 1.
+    void Max_(const SizeVector& dims, bool keepdim, Tensor& dst) const;
 
     /// Returns minimum index of the tensor along the given \p dim. The returned
     /// tensor has dtype int64_t, and has the same shape as original tensor

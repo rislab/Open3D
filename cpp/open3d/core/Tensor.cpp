@@ -44,16 +44,16 @@
 #include "open3d/core/kernel/Kernel.h"
 #include "open3d/core/linalg/Det.h"
 #include "open3d/core/linalg/Inverse.h"
-#include "open3d/core/linalg/LU.h"
 #include "open3d/core/linalg/LLT.h"
 #include "open3d/core/linalg/LLTBatched.h"
-#include "open3d/core/linalg/SolveLLTBatched.h"
+#include "open3d/core/linalg/LU.h"
 #include "open3d/core/linalg/LeastSquares.h"
 #include "open3d/core/linalg/Matmul.h"
 #include "open3d/core/linalg/MatmulBatched.h"
 #include "open3d/core/linalg/SVD.h"
 #include "open3d/core/linalg/Solve.h"
 #include "open3d/core/linalg/SolveLLT.h"
+#include "open3d/core/linalg/SolveLLTBatched.h"
 #include "open3d/core/linalg/Tri.h"
 #include "open3d/t/io/NumpyIO.h"
 #include "open3d/utility/Logging.h"
@@ -1198,6 +1198,11 @@ Tensor Tensor::Sum(const SizeVector& dims, bool keepdim) const {
     return dst;
 }
 
+void Tensor::Sum_(const SizeVector& dims, bool keepdim, Tensor& dst) const {
+    dst.Reshape(shape_util::ReductionShape(shape_, dims, keepdim));
+    kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Sum);
+}
+
 Tensor Tensor::Mean(const SizeVector& dims, bool keepdim) const {
     AssertTensorDtypes(*this, {Float32, Float64});
 
@@ -1231,6 +1236,11 @@ Tensor Tensor::Max(const SizeVector& dims, bool keepdim) const {
                GetDevice());
     kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Max);
     return dst;
+}
+
+void Tensor::Max_(const SizeVector& dims, bool keepdim, Tensor& dst) const {
+    dst.Reshape(shape_util::ReductionShape(shape_, dims, keepdim));
+    kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Max);
 }
 
 Tensor Tensor::ArgMin(const SizeVector& dims) const {
