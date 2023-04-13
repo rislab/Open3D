@@ -50,11 +50,15 @@ void MatmulBatched(const Tensor& A, const Tensor& B, Tensor& output) {
 
     Tensor A_contiguous = A.Contiguous().To(dtype);
     Tensor B_contiguous = B.Contiguous().To(dtype);
+#ifdef BUILD_CUDA_MODULE
     void* A_data = A_contiguous.GetDataPtr();
     void* B_data = B_contiguous.GetDataPtr();
+#endif
 
     output = Tensor::Empty({batch_size, m, n}, dtype, device);
+#ifdef BUILD_CUDA_MODULE
     void* C_data = output.GetDataPtr();
+#endif
 
     if (device.IsCUDA()) {
 #ifdef BUILD_CUDA_MODULE

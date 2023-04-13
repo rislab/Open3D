@@ -39,7 +39,9 @@ void SolveLLTBatched(const Tensor &A, const Tensor &B, Tensor &X) {
         utility::LogError("Tensor A and B's dimension mismatch.");
     }
 
+#ifdef BUILD_CUDA_MODULE
     int64_t batch_size = A_shape[0];
+#endif
     int64_t n = A_shape[1];
     if (n == 0) {
         utility::LogError(
@@ -48,10 +50,14 @@ void SolveLLTBatched(const Tensor &A, const Tensor &B, Tensor &X) {
 
     // A and B are modified in-place
     Tensor A_copy = A.Transpose(1, 2).Clone();
+#ifdef BUILD_CUDA_MODULE
     void *A_data = A_copy.GetDataPtr();
+#endif
 
     X = B.Transpose(1, 2).Clone();
+#ifdef BUILD_CUDA_MODULE
     void *B_data = X.GetDataPtr();
+#endif
 
     if (device.IsCUDA()) {
 #ifdef BUILD_CUDA_MODULE
