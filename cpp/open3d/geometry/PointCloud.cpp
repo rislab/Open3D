@@ -158,6 +158,31 @@ std::vector<double> PointCloud::ComputePointCloudDistance(
     return distances;
 }
 
+std::pair<std::vector<double>, std::vector<int>>
+PointCloud::ComputePointCloudDistanceAndIndices(const PointCloud &target) {
+    std::vector<double> distances(points_.size());
+    std::vector<int> indices(points_.size());
+    KDTreeFlann kdtree;
+    kdtree.SetGeometry(target);
+#pragma omp parallel for schedule(static) \
+        num_threads(utility::EstimateMaxThreads())
+    for (int i = 0; i < (int)points_.size(); i++) {
+        std::vector<int> inds(1);
+        std::vector<double> dists(1);
+        if (kdtree.SearchKNN(points_[i], 1, inds, dists) == 0) {
+            utility::LogDebug(
+                    "[ComputePointCloudToPointCloudDistance] Found a point "
+                    "without neighbors.");
+            distances[i] = 0.0;
+            indices[i] = -1;
+        } else {
+            distances[i] = std::sqrt(dists[0]);
+            indices[i] = inds[0];
+        }
+    }
+    return std::make_pair(distances, indices);
+}
+
 PointCloud &PointCloud::RemoveDuplicatedPoints() {
     const bool has_normals = HasNormals();
     const bool has_colors = HasColors();

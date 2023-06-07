@@ -279,6 +279,15 @@ public:
     /// \param target The target point cloud.
     std::vector<double> ComputePointCloudDistance(const PointCloud &target);
 
+    /// \brief Function to compute the point to point distances between point
+    /// clouds. Also returns the indices.
+    ///
+    /// For each point in the \p source point cloud, compute the distance to the
+    /// \p target point cloud.
+    ///
+    /// \param target The target point cloud.
+    std::pair<std::vector<double>, std::vector<int>> ComputePointCloudDistanceAndIndices(const PointCloud &target);
+
     /// \brief Static function to compute the covariance matrix for each point
     /// of a point cloud. Doesn't change the input PointCloud, just outputs the
     /// covariance matrices.

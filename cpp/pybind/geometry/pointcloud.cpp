@@ -164,6 +164,11 @@ void pybind_pointcloud(py::module &m) {
                  "For each point in the source point cloud, compute the "
                  "distance to the target point cloud.",
                  "target"_a)
+            .def("compute_point_cloud_distance_indices",
+                 &PointCloud::ComputePointCloudDistanceAndIndices,
+                 "For each point in the source point cloud, compute the "
+                 "distance to the target point cloud.",
+                 "target"_a)
             .def_static(
                     "estimate_point_covariances",
                     &PointCloud::EstimatePerPointCovariances,
