@@ -233,6 +233,12 @@ public:
 
     const std::string &GetWindowName() const { return window_name_; }
 
+    /// Get the current view status as a json string of ViewTrajectory.
+    std::string GetViewStatus();
+
+    /// Set the current view status from a json string of ViewTrajectory.
+    void SetViewStatus(const std::string &view_status_str);
+
 protected:
     /// Function to initialize OpenGL
     virtual bool InitOpenGL();
@@ -248,8 +254,10 @@ protected:
     /// meshes individually).
     virtual void Render(bool render_screen = false);
 
+    /// Copy the current view status to clipboard.
     void CopyViewStatusToClipboard();
 
+    /// Apply the view point from clipboard.
     void CopyViewStatusFromClipboard();
 
     // callback functions
