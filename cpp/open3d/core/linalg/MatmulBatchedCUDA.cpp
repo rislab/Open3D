@@ -13,8 +13,9 @@ void MatmulBatchedCUDA(void* A_data,
                        int64_t k,
                        int64_t n,
                        Dtype dtype,
-                       int batchCount) {
-    cublasHandle_t handle = CuBLASContext::GetInstance()->GetHandle();
+                       int batchCount,
+                       const Device& device) {
+    cublasHandle_t handle = CuBLASContext::GetInstance().GetHandle(device);
     DISPATCH_LINALG_DTYPE_TO_TEMPLATE(dtype, [&]() {
         scalar_t alpha = 1, beta = 0;
         OPEN3D_CUBLAS_CHECK(
@@ -37,8 +38,9 @@ void MatmulBatchedCUDA(void* A_data,
                        int64_t strideA,
                        int64_t strideB,
                        int64_t strideC,
-                       int batchCount) {
-    cublasHandle_t handle = CuBLASContext::GetInstance()->GetHandle();
+                       int batchCount,
+                       const Device& device) {
+    cublasHandle_t handle = CuBLASContext::GetInstance().GetHandle(device);
     DISPATCH_LINALG_DTYPE_TO_TEMPLATE(dtype, [&]() {
         scalar_t alpha = 1, beta = 0;
         OPEN3D_CUBLAS_CHECK(

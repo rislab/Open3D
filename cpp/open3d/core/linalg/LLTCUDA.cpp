@@ -9,7 +9,7 @@ void LLTCUDA(void* A_data,
 	    int64_t cols, // NOTE: this is a square matrix
             Dtype dtype,
             const Device& device) {
-    cusolverDnHandle_t handle = CuSolverContext::GetInstance()->GetHandle();
+    cusolverDnHandle_t handle = CuSolverContext::GetInstance().GetHandle(device);
     DISPATCH_LINALG_DTYPE_TO_TEMPLATE(dtype, [&]() {
         int len;
         OPEN3D_CUSOLVER_CHECK(

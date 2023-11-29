@@ -15,7 +15,7 @@ void SolveCUDALLTBatched(void* A_data,
                          int64_t cols,
                          Dtype dtype,
                          const Device& device) {
-    cusolverDnHandle_t handle = CuSolverContext::GetInstance()->GetHandle();
+    cusolverDnHandle_t handle = CuSolverContext::GetInstance().GetHandle(device);
     DISPATCH_LINALG_DTYPE_TO_TEMPLATE(dtype, [&]() {
         // prepare data
         scalar_t* A_ptr = static_cast<scalar_t*>(A_data);

@@ -17,7 +17,8 @@ void MatmulBatchedCUDA(void* A_data,
                        int64_t k,
                        int64_t n,
                        Dtype dtype,
-                       int batchCount);
+                       int batchCount,
+                const Device& device);
 void MatmulBatchedCUDA(void* A_data,
                        void* B_data,
                        void* C_data,
@@ -28,7 +29,8 @@ void MatmulBatchedCUDA(void* A_data,
                        int64_t strideA,
                        int64_t strideB,
                        int64_t strideC,
-                       int batchCount);
+                       int batchCount,
+                const Device& device);
 #endif
 void MatmulBatchedCPU(void* A_data,
                       void* B_data,

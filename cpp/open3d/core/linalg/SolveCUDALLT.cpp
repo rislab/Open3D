@@ -16,7 +16,7 @@ void SolveCUDALLT(void* A_data,
                int64_t k,
                Dtype dtype,
                const Device& device) {
-    cusolverDnHandle_t handle = CuSolverContext::GetInstance()->GetHandle();
+    cusolverDnHandle_t handle = CuSolverContext::GetInstance().GetHandle(device);
 
     DISPATCH_LINALG_DTYPE_TO_TEMPLATE(dtype, [&]() {
         int len;

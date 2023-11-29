@@ -64,14 +64,14 @@ void MatmulBatched(const Tensor& A, const Tensor& B, Tensor& output) {
 #ifdef BUILD_CUDA_MODULE
         if (A_shape[0] == B_shape[0]) {
             MatmulBatchedCUDA(B_data, A_data, C_data, n, k, m, dtype,
-                              batch_size);
+                              batch_size, device);
         } else {
             if (A_shape[0] == 1) {
                 MatmulBatchedCUDA(B_data, A_data, C_data, n, k, m, dtype, n * k,
-                                  0, m * n, batch_size);
+                                  0, m * n, batch_size, device);
             } else if (B_shape[0] == 1) {
                 MatmulBatchedCUDA(B_data, A_data, C_data, n, k, m, dtype, 0,
-                                  k * m, m * n, batch_size);
+                                  k * m, m * n, batch_size, device);
             } else {
                 utility::LogError("Unimplemented MatmulBatched call.");
             }

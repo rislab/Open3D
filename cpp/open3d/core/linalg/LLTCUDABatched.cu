@@ -12,7 +12,7 @@ void LLTBatchedCUDA(void* A_data,
                     int64_t cols,  // NOTE: this is a square matrix
                     Dtype dtype,
                     const Device& device) {
-    cusolverDnHandle_t handle = CuSolverContext::GetInstance()->GetHandle();
+    cusolverDnHandle_t handle = CuSolverContext::GetInstance().GetHandle(device);
     DISPATCH_LINALG_DTYPE_TO_TEMPLATE(dtype, [&]() {
         scalar_t* output_ptr = static_cast<scalar_t*>(A_data);
         scalar_t** A_array = static_cast<scalar_t**>(
