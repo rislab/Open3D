@@ -1,27 +1,8 @@
 // ----------------------------------------------------------------------------
 // -                        Open3D: www.open3d.org                            -
 // ----------------------------------------------------------------------------
-// The MIT License (MIT)
-//
-// Copyright (c) 2018-2021 www.open3d.org
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+// Copyright (c) 2018-2023 www.open3d.org
+// SPDX-License-Identifier: MIT
 // ----------------------------------------------------------------------------
 
 #include "open3d/geometry/PointCloud.h"
@@ -69,6 +50,11 @@ AxisAlignedBoundingBox PointCloud::GetAxisAlignedBoundingBox() const {
 
 OrientedBoundingBox PointCloud::GetOrientedBoundingBox(bool robust) const {
     return OrientedBoundingBox::CreateFromPoints(points_, robust);
+}
+
+OrientedBoundingBox PointCloud::GetMinimalOrientedBoundingBox(
+        bool robust) const {
+    return OrientedBoundingBox::CreateFromPointsMinimal(points_, robust);
 }
 
 PointCloud &PointCloud::Transform(const Eigen::Matrix4d &transformation) {
@@ -156,6 +142,31 @@ std::vector<double> PointCloud::ComputePointCloudDistance(
         }
     }
     return distances;
+}
+
+std::pair<std::vector<double>, std::vector<int>>
+PointCloud::ComputePointCloudDistanceAndIndices(const PointCloud &target) {
+    std::vector<double> distances(points_.size());
+    std::vector<int> indices(points_.size());
+    KDTreeFlann kdtree;
+    kdtree.SetGeometry(target);
+#pragma omp parallel for schedule(static) \
+        num_threads(utility::EstimateMaxThreads())
+    for (int i = 0; i < (int)points_.size(); i++) {
+        std::vector<int> inds(1);
+        std::vector<double> dists(1);
+        if (kdtree.SearchKNN(points_[i], 1, inds, dists) == 0) {
+            utility::LogDebug(
+                    "[ComputePointCloudToPointCloudDistance] Found a point "
+                    "without neighbors.");
+            distances[i] = 0.0;
+            indices[i] = -1;
+        } else {
+            distances[i] = std::sqrt(dists[0]);
+            indices[i] = inds[0];
+        }
+    }
+    return std::make_pair(distances, indices);
 }
 
 PointCloud &PointCloud::RemoveDuplicatedPoints() {
@@ -555,23 +566,25 @@ std::shared_ptr<PointCloud> PointCloud::FarthestPointDownSample(
     return SelectByIndex(selected_indices);
 }
 
-std::shared_ptr<PointCloud> PointCloud::Crop(
-        const AxisAlignedBoundingBox &bbox) const {
+std::shared_ptr<PointCloud> PointCloud::Crop(const AxisAlignedBoundingBox &bbox,
+                                             bool invert) const {
     if (bbox.IsEmpty()) {
         utility::LogError(
                 "AxisAlignedBoundingBox either has zeros size, or has wrong "
                 "bounds.");
     }
-    return SelectByIndex(bbox.GetPointIndicesWithinBoundingBox(points_));
+    return SelectByIndex(bbox.GetPointIndicesWithinBoundingBox(points_),
+                         invert);
 }
-std::shared_ptr<PointCloud> PointCloud::Crop(
-        const OrientedBoundingBox &bbox) const {
+std::shared_ptr<PointCloud> PointCloud::Crop(const OrientedBoundingBox &bbox,
+                                             bool invert) const {
     if (bbox.IsEmpty()) {
         utility::LogError(
                 "AxisAlignedBoundingBox either has zeros size, or has wrong "
                 "bounds.");
     }
-    return SelectByIndex(bbox.GetPointIndicesWithinBoundingBox(points_));
+    return SelectByIndex(bbox.GetPointIndicesWithinBoundingBox(points_),
+                         invert);
 }
 
 std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>

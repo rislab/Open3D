@@ -1,34 +1,15 @@
 // ----------------------------------------------------------------------------
 // -                        Open3D: www.open3d.org                            -
 // ----------------------------------------------------------------------------
-// The MIT License (MIT)
-//
-// Copyright (c) 2018-2021 www.open3d.org
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+// Copyright (c) 2018-2023 www.open3d.org
+// SPDX-License-Identifier: MIT
 // ----------------------------------------------------------------------------
 
 #pragma once
 
-#include <memory>
 #include <string>
 
+#include "open3d/core/Device.h"
 #include "open3d/core/Dtype.h"
 #include "open3d/core/MemoryManager.h"
 #include "open3d/core/linalg/LinalgHeadersCPU.h"
@@ -91,33 +72,62 @@ inline void OPEN3D_CUSOLVER_CHECK_WITH_DINFO(cusolverStatus_t status,
     }
 }
 
+inline void OPEN3D_CUSOLVER_CHECK_WITH_INFO_ARRAY(cusolverStatus_t status,
+                                                  const std::string& msg,
+                                                  int* info_array,
+                                                  int batch_size,
+                                                  const Device& device) {
+    int hinfo[batch_size];
+    MemoryManager::MemcpyToHost(hinfo, info_array, device,
+                                batch_size * sizeof(int));
+    for (int i = 0; i < batch_size; i++) {
+        if (status != CUSOLVER_STATUS_SUCCESS) {
+            if (hinfo[i] < 0) {
+                utility::LogError("{}: {}-th parameter is invalid.", msg,
+                                  -hinfo[i]);
+            } else if (hinfo[i] > 0) {
+                utility::LogError("{}: singular condition detected.", msg);
+            } else {
+                utility::LogError("{}: status error code = {}.", msg, status);
+            }
+        }
+        if (status == CUSOLVER_STATUS_SUCCESS) {
+            if (hinfo[i] > 0) {
+                utility::LogError("{}: {}-th matrix failed at row {}.", msg, i,
+                                  hinfo[i]);
+            }
+        }
+    }
+}
+
 class CuSolverContext {
 public:
-    static std::shared_ptr<CuSolverContext> GetInstance();
-    CuSolverContext();
+    static CuSolverContext& GetInstance();
+
+    CuSolverContext(const CuSolverContext&) = delete;
+    CuSolverContext& operator=(const CuSolverContext&) = delete;
     ~CuSolverContext();
 
-    cusolverDnHandle_t& GetHandle() { return handle_; }
+    cusolverDnHandle_t& GetHandle(const Device& device);
 
 private:
-    cusolverDnHandle_t handle_;
-
-    static std::shared_ptr<CuSolverContext> instance_;
+    CuSolverContext();
+    std::unordered_map<Device, cusolverDnHandle_t> map_device_to_handle_;
 };
 
 class CuBLASContext {
 public:
-    static std::shared_ptr<CuBLASContext> GetInstance();
+    static CuBLASContext& GetInstance();
 
-    CuBLASContext();
+    CuBLASContext(const CuBLASContext&) = delete;
+    CuBLASContext& operator=(const CuBLASContext&) = delete;
     ~CuBLASContext();
 
-    cublasHandle_t& GetHandle() { return handle_; }
+    cublasHandle_t& GetHandle(const Device& device);
 
 private:
-    cublasHandle_t handle_;
-
-    static std::shared_ptr<CuBLASContext> instance_;
+    CuBLASContext();
+    std::unordered_map<Device, cublasHandle_t> map_device_to_handle_;
 };
 #endif
 }  // namespace core

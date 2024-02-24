@@ -47,6 +47,8 @@ target_sources(core PRIVATE
     kernel/BinaryEWCPU.cpp
     kernel/IndexGetSet.cpp
     kernel/IndexGetSetCPU.cpp
+    kernel/IndexReduction.cpp
+    kernel/IndexReductionCPU.cpp
     kernel/Kernel.cpp
     kernel/NonZero.cpp
     kernel/NonZeroCPU.cpp
@@ -63,10 +65,19 @@ target_sources(core PRIVATE
     linalg/LeastSquaresCPU.cpp
     linalg/LU.cpp
     linalg/LUCPU.cpp
+    linalg/LLT.cpp
+    linalg/LLTCPU.cpp
+    linalg/LLTBatched.cpp
+    linalg/LLTCPUBatched.cpp
     linalg/Matmul.cpp
+    linalg/MatmulBatched.cpp
     linalg/MatmulCPU.cpp
     linalg/Solve.cpp
+    linalg/SolveLLT.cpp
     linalg/SolveCPU.cpp
+    linalg/SolveCPULLT.cpp
+    linalg/SolveLLTBatched.cpp
+    linalg/SolveCPULLTBatched.cpp
     linalg/SVD.cpp
     linalg/SVDCPU.cpp
     linalg/Tri.cpp
@@ -90,6 +101,7 @@ if (BUILD_CUDA_MODULE)
         kernel/ArangeCUDA.cu
         kernel/BinaryEWCUDA.cu
         kernel/IndexGetSetCUDA.cu
+        kernel/IndexReductionCUDA.cu
         kernel/NonZeroCUDA.cu
         kernel/ReductionCUDA.cu
         kernel/UnaryEWCUDA.cu
@@ -98,8 +110,13 @@ if (BUILD_CUDA_MODULE)
         linalg/LeastSquaresCUDA.cpp
         linalg/LinalgUtils.cpp
         linalg/LUCUDA.cpp
+        linalg/LLTCUDA.cpp
+        linalg/LLTCUDABatched.cu
         linalg/MatmulCUDA.cpp
+        linalg/MatmulBatchedCUDA.cpp
         linalg/SolveCUDA.cpp
+        linalg/SolveCUDALLT.cpp
+        linalg/SolveCUDALLTBatched.cu
         linalg/SVDCUDA.cpp
         linalg/TriCUDA.cu
         nns/FixedRadiusSearchOps.cu

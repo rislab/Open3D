@@ -1,27 +1,8 @@
 // ----------------------------------------------------------------------------
 // -                        Open3D: www.open3d.org                            -
 // ----------------------------------------------------------------------------
-// The MIT License (MIT)
-//
-// Copyright (c) 2018-2021 www.open3d.org
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+// Copyright (c) 2018-2023 www.open3d.org
+// SPDX-License-Identifier: MIT
 // ----------------------------------------------------------------------------
 
 #include "open3d/core/Tensor.h"
@@ -41,14 +22,20 @@
 #include "open3d/core/TensorFunction.h"
 #include "open3d/core/TensorKey.h"
 #include "open3d/core/kernel/Arange.h"
+#include "open3d/core/kernel/IndexReduction.h"
 #include "open3d/core/kernel/Kernel.h"
 #include "open3d/core/linalg/Det.h"
 #include "open3d/core/linalg/Inverse.h"
+#include "open3d/core/linalg/LLT.h"
+#include "open3d/core/linalg/LLTBatched.h"
 #include "open3d/core/linalg/LU.h"
 #include "open3d/core/linalg/LeastSquares.h"
 #include "open3d/core/linalg/Matmul.h"
+#include "open3d/core/linalg/MatmulBatched.h"
 #include "open3d/core/linalg/SVD.h"
 #include "open3d/core/linalg/Solve.h"
+#include "open3d/core/linalg/SolveLLT.h"
+#include "open3d/core/linalg/SolveLLTBatched.h"
 #include "open3d/core/linalg/Tri.h"
 #include "open3d/t/io/NumpyIO.h"
 #include "open3d/utility/Logging.h"
@@ -768,7 +755,7 @@ std::string Tensor::ToString(bool with_suffix,
     std::ostringstream rc;
     if (IsCUDA() || !IsContiguous()) {
         Tensor host_contiguous_tensor = Contiguous().To(Device("CPU:0"));
-        rc << host_contiguous_tensor.ToString(false, "");
+        rc << host_contiguous_tensor.ToString(with_suffix, indent);
     } else {
         if (shape_.NumElements() == 0) {
             rc << indent;
@@ -972,6 +959,43 @@ void Tensor::IndexSet(const std::vector<Tensor>& index_tensors,
 
     kernel::IndexSet(src_tensor, pre_processed_dst, aip.GetIndexTensors(),
                      aip.GetIndexedShape(), aip.GetIndexedStrides());
+}
+
+void Tensor::IndexAdd_(int64_t dim, const Tensor& index, const Tensor& src) {
+    if (index.NumDims() != 1) {
+        utility::LogError("IndexAdd_ only supports 1D index tensors.");
+    }
+
+    // Dim check.
+    if (dim < 0) {
+        utility::LogError("IndexAdd_ only supports sum at non-negative dim.");
+    }
+    if (NumDims() <= dim) {
+        utility::LogError("Sum dim {} exceeds tensor dim {}.", dim, NumDims());
+    }
+
+    // shape check
+    if (src.NumDims() != NumDims()) {
+        utility::LogError(
+                "IndexAdd_ only supports src tensor with same dimension as "
+                "this tensor.");
+    }
+    for (int64_t d = 0; d < NumDims(); ++d) {
+        if (d != dim && src.GetShape(d) != GetShape(d)) {
+            utility::LogError(
+                    "IndexAdd_ only supports src tensor with same shape as "
+                    "this "
+                    "tensor except dim {}.",
+                    dim);
+        }
+    }
+
+    // Type check.
+    AssertTensorDtype(index, core::Int64);
+    AssertTensorDtype(*this, src.GetDtype());
+
+    // Apply kernel.
+    kernel::IndexAdd_(dim, index, src, *this);
 }
 
 Tensor Tensor::Permute(const SizeVector& dims) const {
@@ -1193,6 +1217,11 @@ Tensor Tensor::Sum(const SizeVector& dims, bool keepdim) const {
     return dst;
 }
 
+void Tensor::Sum_(const SizeVector& dims, bool keepdim, Tensor& dst) const {
+    dst.Reshape(shape_util::ReductionShape(shape_, dims, keepdim));
+    kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Sum);
+}
+
 Tensor Tensor::Mean(const SizeVector& dims, bool keepdim) const {
     AssertTensorDtypes(*this, {Float32, Float64});
 
@@ -1226,6 +1255,11 @@ Tensor Tensor::Max(const SizeVector& dims, bool keepdim) const {
                GetDevice());
     kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Max);
     return dst;
+}
+
+void Tensor::Max_(const SizeVector& dims, bool keepdim, Tensor& dst) const {
+    dst.Reshape(shape_util::ReductionShape(shape_, dims, keepdim));
+    kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Max);
 }
 
 Tensor Tensor::ArgMin(const SizeVector& dims) const {
@@ -1864,6 +1898,15 @@ Tensor Tensor::Matmul(const Tensor& rhs) const {
     return output;
 }
 
+Tensor Tensor::MatmulBatched(const Tensor& rhs) const {
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::MatmulBatched(*this, rhs, output);
+    return output;
+}
+
 Tensor Tensor::Solve(const Tensor& rhs) const {
     AssertTensorDtypes(*this, {Float32, Float64});
     AssertTensorDevice(rhs, GetDevice());
@@ -1871,6 +1914,27 @@ Tensor Tensor::Solve(const Tensor& rhs) const {
 
     Tensor output;
     core::Solve(*this, rhs, output);
+    return output;
+}
+
+Tensor Tensor::SolveLLT(const Tensor& rhs) const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::SolveLLT(*this, rhs, output);
+    return output;
+}
+
+Tensor Tensor::SolveLLTBatched(const Tensor& rhs) const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::SolveLLTBatched(*this, rhs, output);
+
     return output;
 }
 
@@ -1900,6 +1964,22 @@ std::tuple<Tensor, Tensor> Tensor::LUIpiv() const {
     return std::make_tuple(ipiv, output);
 }
 
+Tensor Tensor::LLT() const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+
+    core::Tensor lower;
+    core::LLT(*this, lower);
+    return lower;
+}
+
+Tensor Tensor::LLTBatched() const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+
+    core::Tensor lower;
+    core::LLTBatched(*this, lower);
+    return lower;
+}
+
 Tensor Tensor::Triu(const int diagonal) const {
     Tensor output;
     core::Triu(*this, output, diagonal);
@@ -1909,6 +1989,12 @@ Tensor Tensor::Triu(const int diagonal) const {
 Tensor Tensor::Tril(const int diagonal) const {
     Tensor output;
     core::Tril(*this, output, diagonal);
+    return output;
+}
+
+Tensor Tensor::Tril3D(const int diagonal) const {
+    Tensor output;
+    core::Tril3D(*this, output, diagonal);
     return output;
 }
 

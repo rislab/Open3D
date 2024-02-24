@@ -1,27 +1,8 @@
 // ----------------------------------------------------------------------------
 // -                        Open3D: www.open3d.org                            -
 // ----------------------------------------------------------------------------
-// The MIT License (MIT)
-//
-// Copyright (c) 2018-2021 www.open3d.org
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+// Copyright (c) 2018-2023 www.open3d.org
+// SPDX-License-Identifier: MIT
 // ----------------------------------------------------------------------------
 
 #pragma once
@@ -594,6 +575,16 @@ public:
     void IndexSet(const std::vector<Tensor>& index_tensors,
                   const Tensor& src_tensor);
 
+    /// \brief Advanced in-place reduction by index.
+    ///
+    /// See
+    /// https://pytorch.org/docs/stable/generated/torch.Tensor.index_add_.html
+    ///
+    /// self[index[i]] = operator(self[index[i]], src[i]).
+    ///
+    /// Note: Only support 1D index and src tensors now.
+    void IndexAdd_(int64_t dim, const Tensor& index, const Tensor& src);
+
     /// \brief Permute (dimension shuffle) the Tensor, returns a view.
     ///
     /// \param dims The desired ordering of dimensions.
@@ -692,6 +683,11 @@ public:
     /// \param keepdim If true, the reduced dims will be retained as size 1.
     Tensor Sum(const SizeVector& dims, bool keepdim = false) const;
 
+    /// Returns the sum of the tensor and fills it in out along the given \p dims.
+    /// \param dims A list of dimensions to be reduced.
+    /// \param keepdim If true, the reduced dims will be retained as size 1.
+    void Sum_(const SizeVector& dims, bool keepdim, Tensor& dst) const;
+
     /// Returns the mean of the tensor along the given \p dims.
     /// \param dims A list of dimensions to be reduced.
     /// \param keepdim If true, the reduced dims will be retained as size 1.
@@ -711,6 +707,11 @@ public:
     /// \param dims A list of dimensions to be reduced.
     /// \param keepdim If true, the reduced dims will be retained as size 1.
     Tensor Max(const SizeVector& dims, bool keepdim = false) const;
+
+    /// Returns max of the tensor along the given \p dims and puts it in dst.
+    /// \param dims A list of dimensions to be reduced.
+    /// \param keepdim If true, the reduced dims will be retained as size 1.
+    void Max_(const SizeVector& dims, bool keepdim, Tensor& dst) const;
 
     /// Returns minimum index of the tensor along the given \p dim. The returned
     /// tensor has dtype int64_t, and has the same shape as original tensor
@@ -755,6 +756,9 @@ public:
 
     /// Element-wise negation of a tensor, in-place.
     Tensor Neg_();
+
+    /// Unary minus of a tensor, returning a new tensor.
+    Tensor operator-() const { return Neg(); }
 
     /// Element-wise exponential of a tensor, returning a new tensor.
     Tensor Exp() const;
@@ -1057,9 +1061,24 @@ public:
     /// result.
     Tensor Matmul(const Tensor& rhs) const;
 
+    /// Computes matrix multiplication with *this and rhs and returns the
+    /// result. In this case, *this and rhs should be 3D tensors of the
+    /// same first dimension.
+    /// For example, if *this is (L, M, K) and rhs is (L, K, N),
+    /// then the result is shaped (L, M, N).
+    Tensor MatmulBatched(const Tensor& rhs) const;
+
     /// Solves the linear system AX = B with LU decomposition and returns X.
     /// A must be a square matrix.
     Tensor Solve(const Tensor& rhs) const;
+
+    /// Solves the linear system AX = B with LLT decomposition and returns X.
+    /// A must be a square matrix.
+    Tensor SolveLLT(const Tensor& rhs) const;
+
+    /// Solves the linear system AX = B with LLT decomposition and returns X.
+    /// A must be a square matrix.
+    Tensor SolveLLTBatched(const Tensor& rhs) const;
 
     /// Solves the linear system AX = B with QR decomposition and returns X.
     /// A is a (m, n) matrix with m >= n.
@@ -1088,6 +1107,21 @@ public:
     /// main diagonal (diagonal elements of L to be taken as unity).
     std::tuple<Tensor, Tensor> LUIpiv() const;
 
+    /// \brief Computes Cholesky factorisation of the 2D square tensor,
+    /// using A = L * L^T; where L is the
+    /// lower-triangular matrix. This function returns L.
+    ///
+    /// \return L.
+    Tensor LLT() const;
+
+    /// \brief Computes Cholesky factorisation of the 3D square tensor,
+    /// using A = L * L^T; where L is the
+    /// lower-triangular matrix, for every A along 1- and 2-dimes of
+    /// input tensor. This function returns a 3D tensor with all the L matrices.
+    ///
+    /// \return 3D tensor containing the L matrices.
+    Tensor LLTBatched() const;
+
     /// \brief Returns the upper triangular matrix of the 2D tensor,
     /// above the given diagonal index. [The value of diagonal = col - row,
     /// therefore 0 is the main diagonal (row = col), and it shifts towards
@@ -1109,6 +1143,17 @@ public:
     /// \param diagonal value of [col - row], below which the elements are to be
     /// taken for lower triangular matrix.
     Tensor Tril(const int diagonal = 0) const;
+
+    /// \brief Returns the lower triangular matrix of the 3D tensor,
+    /// above the given diagonal index. [The value of diagonal = col - row,
+    /// therefore 0 is the main diagonal (row = col), and it shifts towards
+    /// right for positive values (for diagonal = 1, col - row = 1), and towards
+    /// left for negative values. The value of the diagonal parameter must be
+    /// between [-m, n] where {l, m, n} is the shape of input tensor.
+    ///
+    /// \param diagonal value of [col - row], below which the elements are to be
+    /// taken for lower triangular matrix.
+    Tensor Tril3D(const int diagonal = 0) const;
 
     /// \brief Returns the tuple of upper and lower triangular matrix
     /// of the 2D tensor, above and below the given diagonal index.
