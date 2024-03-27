@@ -665,6 +665,10 @@ public:
     /// rendering.
     TriangleMesh &ComputeVertexNormals(bool normalized = true);
 
+    /// \brief Function that computes the surface area of the mesh, i.e. the sum
+    /// of the individual triangle surfaces.
+    double GetSurfaceArea() const;
+
     /// \brief Clip mesh with a plane.
     /// This method clips the triangle mesh with the specified plane.
     /// Parts of the mesh on the positive side of the plane will be kept and
@@ -940,6 +944,10 @@ public:
     /// from the selected vertices. If the original mesh is empty, return
     /// an empty mesh.
     TriangleMesh SelectByIndex(const core::Tensor &indices) const;
+
+    /// Removes unreferenced vertices from the mesh.
+    /// \return The reference to itself.
+    TriangleMesh RemoveUnreferencedVertices();
 
 protected:
     core::Device device_ = core::Device("CPU:0");
