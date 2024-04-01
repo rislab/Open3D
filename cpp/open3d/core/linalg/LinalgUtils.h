@@ -72,6 +72,34 @@ inline void OPEN3D_CUSOLVER_CHECK_WITH_DINFO(cusolverStatus_t status,
     }
 }
 
+inline void OPEN3D_CUSOLVER_CHECK_WITH_INFO_ARRAY(cusolverStatus_t status,
+                                                  const std::string& msg,
+                                                  int* info_array,
+                                                  int batch_size,
+                                                  const Device& device) {
+    int hinfo[batch_size];
+    MemoryManager::MemcpyToHost(hinfo, info_array, device,
+                                batch_size * sizeof(int));
+    for (int i = 0; i < batch_size; i++) {
+        if (status != CUSOLVER_STATUS_SUCCESS) {
+            if (hinfo[i] < 0) {
+                utility::LogError("{}: {}-th parameter is invalid.", msg,
+                                  -hinfo[i]);
+            } else if (hinfo[i] > 0) {
+                utility::LogError("{}: singular condition detected.", msg);
+            } else {
+                utility::LogError("{}: status error code = {}.", msg, status);
+            }
+        }
+        if (status == CUSOLVER_STATUS_SUCCESS) {
+            if (hinfo[i] > 0) {
+                utility::LogError("{}: {}-th matrix failed at row {}.", msg, i,
+                                  hinfo[i]);
+            }
+        }
+    }
+}
+
 class CuSolverContext {
 public:
     static CuSolverContext& GetInstance();

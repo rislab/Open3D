@@ -26,11 +26,16 @@
 #include "open3d/core/kernel/Kernel.h"
 #include "open3d/core/linalg/Det.h"
 #include "open3d/core/linalg/Inverse.h"
+#include "open3d/core/linalg/LLT.h"
+#include "open3d/core/linalg/LLTBatched.h"
 #include "open3d/core/linalg/LU.h"
 #include "open3d/core/linalg/LeastSquares.h"
 #include "open3d/core/linalg/Matmul.h"
+#include "open3d/core/linalg/MatmulBatched.h"
 #include "open3d/core/linalg/SVD.h"
 #include "open3d/core/linalg/Solve.h"
+#include "open3d/core/linalg/SolveLLT.h"
+#include "open3d/core/linalg/SolveLLTBatched.h"
 #include "open3d/core/linalg/Tri.h"
 #include "open3d/t/io/NumpyIO.h"
 #include "open3d/utility/Logging.h"
@@ -1212,6 +1217,11 @@ Tensor Tensor::Sum(const SizeVector& dims, bool keepdim) const {
     return dst;
 }
 
+void Tensor::Sum_(const SizeVector& dims, bool keepdim, Tensor& dst) const {
+    dst.Reshape(shape_util::ReductionShape(shape_, dims, keepdim));
+    kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Sum);
+}
+
 Tensor Tensor::Mean(const SizeVector& dims, bool keepdim) const {
     AssertTensorDtypes(*this, {Float32, Float64});
 
@@ -1245,6 +1255,11 @@ Tensor Tensor::Max(const SizeVector& dims, bool keepdim) const {
                GetDevice());
     kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Max);
     return dst;
+}
+
+void Tensor::Max_(const SizeVector& dims, bool keepdim, Tensor& dst) const {
+    dst.Reshape(shape_util::ReductionShape(shape_, dims, keepdim));
+    kernel::Reduction(*this, dst, dims, keepdim, kernel::ReductionOpCode::Max);
 }
 
 Tensor Tensor::ArgMin(const SizeVector& dims) const {
@@ -1313,6 +1328,17 @@ Tensor Tensor::Exp() const {
 
 Tensor Tensor::Exp_() {
     kernel::UnaryEW(*this, *this, kernel::UnaryEWOpCode::Exp);
+    return *this;
+}
+
+Tensor Tensor::Log() const {
+    Tensor dst_tensor(shape_, dtype_, GetDevice());
+    kernel::UnaryEW(*this, dst_tensor, kernel::UnaryEWOpCode::Log);
+    return dst_tensor;
+}
+
+Tensor Tensor::Log_() {
+    kernel::UnaryEW(*this, *this, kernel::UnaryEWOpCode::Log);
     return *this;
 }
 
@@ -1872,6 +1898,15 @@ Tensor Tensor::Matmul(const Tensor& rhs) const {
     return output;
 }
 
+Tensor Tensor::MatmulBatched(const Tensor& rhs) const {
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::MatmulBatched(*this, rhs, output);
+    return output;
+}
+
 Tensor Tensor::Solve(const Tensor& rhs) const {
     AssertTensorDtypes(*this, {Float32, Float64});
     AssertTensorDevice(rhs, GetDevice());
@@ -1879,6 +1914,27 @@ Tensor Tensor::Solve(const Tensor& rhs) const {
 
     Tensor output;
     core::Solve(*this, rhs, output);
+    return output;
+}
+
+Tensor Tensor::SolveLLT(const Tensor& rhs) const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::SolveLLT(*this, rhs, output);
+    return output;
+}
+
+Tensor Tensor::SolveLLTBatched(const Tensor& rhs) const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+    AssertTensorDevice(rhs, GetDevice());
+    AssertTensorDtype(rhs, GetDtype());
+
+    Tensor output;
+    core::SolveLLTBatched(*this, rhs, output);
+
     return output;
 }
 
@@ -1908,6 +1964,22 @@ std::tuple<Tensor, Tensor> Tensor::LUIpiv() const {
     return std::make_tuple(ipiv, output);
 }
 
+Tensor Tensor::LLT() const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+
+    core::Tensor lower;
+    core::LLT(*this, lower);
+    return lower;
+}
+
+Tensor Tensor::LLTBatched() const {
+    AssertTensorDtypes(*this, {Float32, Float64});
+
+    core::Tensor lower;
+    core::LLTBatched(*this, lower);
+    return lower;
+}
+
 Tensor Tensor::Triu(const int diagonal) const {
     Tensor output;
     core::Triu(*this, output, diagonal);
@@ -1917,6 +1989,12 @@ Tensor Tensor::Triu(const int diagonal) const {
 Tensor Tensor::Tril(const int diagonal) const {
     Tensor output;
     core::Tril(*this, output, diagonal);
+    return output;
+}
+
+Tensor Tensor::Tril3D(const int diagonal) const {
+    Tensor output;
+    core::Tril3D(*this, output, diagonal);
     return output;
 }
 

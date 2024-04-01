@@ -7,6 +7,7 @@
 
 #include <thrust/execution_policy.h>
 #include <thrust/sequence.h>
+#include <thrust/execution_policy.h>
 
 #include "open3d/core/CUDAUtils.h"
 #include "open3d/core/hashmap/HashBackendBuffer.h"

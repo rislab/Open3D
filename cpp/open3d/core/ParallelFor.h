@@ -28,8 +28,12 @@ namespace core {
 
 #ifdef __CUDACC__
 
+#ifndef OPEN3D_PARFOR_BLOCK
 static constexpr int64_t OPEN3D_PARFOR_BLOCK = 128;
+#endif
+#ifndef OPEN3D_PARFOR_THREAD
 static constexpr int64_t OPEN3D_PARFOR_THREAD = 4;
+#endif
 
 /// Calls f(n) with the "grid-stride loops" pattern.
 template <int64_t block_size, int64_t thread_size, typename func_t>

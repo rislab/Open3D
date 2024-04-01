@@ -64,6 +64,37 @@ void Tril(const Tensor& A, Tensor& output, const int diagonal) {
     }
 }
 
+void Tril3D(const Tensor& A, Tensor& output, const int diagonal) {
+    // Check dimensions.
+    // Assumes batch_size x D x D
+    SizeVector A_shape = A.GetShape();
+    if (A_shape.size() != 3) {
+        utility::LogError("Tensor must be 3D, but got {}D.", A_shape.size());
+    }
+    if (A_shape[0] == 0 || A_shape[1] == 0 || A_shape[2] == 0) {
+        utility::LogError(
+                "Tensor shapes should not contain dimensions with zero.");
+    }
+    if (diagonal <= -1 * A_shape[1] || diagonal >= A_shape[2]) {
+        utility::LogError(
+                "Diagonal parameter must be between [-{}, {}] for a matrix "
+                "with shape {}, but got {}.",
+                A_shape[1], A_shape[2], A.GetShape().ToString(), diagonal);
+    }
+
+    core::Device device = A.GetDevice();
+    output = core::Tensor::Zeros(A.GetShape(), A.GetDtype(), device);
+    if (device.IsCUDA()) {
+#ifdef BUILD_CUDA_MODULE
+        Tril3DCUDA(A.Contiguous(), output, diagonal);
+#else
+        utility::LogError("Unimplemented device.");
+#endif
+    } else {
+        Tril3DCPU(A.Contiguous(), output, diagonal);
+    }
+}
+
 void Triul(const Tensor& A, Tensor& upper, Tensor& lower, const int diagonal) {
     CheckInput(A, diagonal);
     core::Device device = A.GetDevice();

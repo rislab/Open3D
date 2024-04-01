@@ -20,6 +20,7 @@ enum class UnaryEWOpCode {
     Cos,
     Neg,
     Exp,
+    Log,
     Abs,
     IsNan,
     IsInf,

@@ -32,6 +32,26 @@ inline void gemm_cpu(CBLAS_LAYOUT layout,
     utility::LogError("Unsupported data type.");
 }
 
+template <typename scalar_t>
+inline void gemm_cpu_batch(CBLAS_LAYOUT layout,
+                           const CBLAS_TRANSPOSE *trans_A,
+                           const CBLAS_TRANSPOSE *trans_B,
+                           const OPEN3D_CPU_LINALG_INT *m,
+                           const OPEN3D_CPU_LINALG_INT *n,
+                           const OPEN3D_CPU_LINALG_INT *k,
+                           const scalar_t *alpha,
+                           const scalar_t **A_data,
+                           const OPEN3D_CPU_LINALG_INT *lda,
+                           const scalar_t **B_data,
+                           const OPEN3D_CPU_LINALG_INT *ldb,
+                           const scalar_t *beta,
+                           scalar_t **C_data,
+                           const OPEN3D_CPU_LINALG_INT *ldc,
+                           const OPEN3D_CPU_LINALG_INT group_count,
+                           const OPEN3D_CPU_LINALG_INT *group_size) {
+    utility::LogError("Unsupported data type.");
+}
+
 template <>
 inline void gemm_cpu<float>(CBLAS_LAYOUT layout,
                             CBLAS_TRANSPOSE trans_A,
@@ -50,6 +70,29 @@ inline void gemm_cpu<float>(CBLAS_LAYOUT layout,
     cblas_sgemm(layout, trans_A, trans_B, m, n, k, alpha, A_data, lda, B_data,
                 ldb, beta, C_data, ldc);
 }
+
+/*
+template <>
+inline void gemm_cpu_batch<float>(CBLAS_LAYOUT layout,
+                                  const CBLAS_TRANSPOSE *trans_A,
+                                  const CBLAS_TRANSPOSE *trans_B,
+                                  const OPEN3D_CPU_LINALG_INT *m,
+                                  const OPEN3D_CPU_LINALG_INT *n,
+                                  const OPEN3D_CPU_LINALG_INT *k,
+                                  const float *alpha,
+                                  const float **A_data,
+                                  const OPEN3D_CPU_LINALG_INT *lda,
+                                  const float **B_data,
+                                  const OPEN3D_CPU_LINALG_INT *ldb,
+                                  const float *beta,
+                                  float **C_data,
+                                  const OPEN3D_CPU_LINALG_INT *ldc,
+                                  const OPEN3D_CPU_LINALG_INT group_count,
+                                  const OPEN3D_CPU_LINALG_INT *group_size) {
+    cblas_sgemm_batch(layout, trans_A, trans_B, m, n, k, alpha, A_data, lda,
+                      B_data, ldb, beta, C_data, ldc, group_count, group_size);
+}
+*/
 
 template <>
 inline void gemm_cpu<double>(CBLAS_LAYOUT layout,
@@ -70,6 +113,29 @@ inline void gemm_cpu<double>(CBLAS_LAYOUT layout,
                 ldb, beta, C_data, ldc);
 }
 
+/*
+template <>
+inline void gemm_cpu_batch<double>(CBLAS_LAYOUT layout,
+                                   const CBLAS_TRANSPOSE *trans_A,
+                                   const CBLAS_TRANSPOSE *trans_B,
+                                   const OPEN3D_CPU_LINALG_INT *m,
+                                   const OPEN3D_CPU_LINALG_INT *n,
+                                   const OPEN3D_CPU_LINALG_INT *k,
+                                   const double *alpha,
+                                   const double **A_data,
+                                   const OPEN3D_CPU_LINALG_INT *lda,
+                                   const double **B_data,
+                                   const OPEN3D_CPU_LINALG_INT *ldb,
+                                   const double *beta,
+                                   double **C_data,
+                                   const OPEN3D_CPU_LINALG_INT *ldc,
+                                   const OPEN3D_CPU_LINALG_INT group_count,
+                                   const OPEN3D_CPU_LINALG_INT *group_size) {
+    cblas_dgemm_batch(layout, trans_A, trans_B, m, n, k, alpha, A_data, lda,
+                      B_data, ldb, beta, C_data, ldc, group_count, group_size);
+}
+*/
+
 #ifdef BUILD_CUDA_MODULE
 template <typename scalar_t>
 inline cublasStatus_t gemm_cuda(cublasHandle_t handle,
@@ -86,6 +152,29 @@ inline cublasStatus_t gemm_cuda(cublasHandle_t handle,
                                 const scalar_t *beta,
                                 scalar_t *C_data,
                                 int ldc) {
+    utility::LogError("Unsupported data type.");
+    return CUBLAS_STATUS_NOT_SUPPORTED;
+}
+
+template <typename scalar_t>
+inline cublasStatus_t gemm_cuda_strided_batched(cublasHandle_t handle,
+                                                cublasOperation_t transa,
+                                                cublasOperation_t transb,
+                                                int m,
+                                                int n,
+                                                int k,
+                                                const scalar_t *alpha,
+                                                const scalar_t *A_data,
+                                                int lda,
+                                                long long int strideA,
+                                                const scalar_t *B_data,
+                                                int ldb,
+                                                long long int strideB,
+                                                const scalar_t *beta,
+                                                scalar_t *C_data,
+                                                int ldc,
+                                                long long int strideC,
+                                                int batchCount) {
     utility::LogError("Unsupported data type.");
     return CUBLAS_STATUS_NOT_SUPPORTED;
 }
@@ -132,6 +221,36 @@ inline cublasStatus_t gemm_cuda<float>(cublasHandle_t handle,
 }
 
 template <>
+inline cublasStatus_t gemm_cuda_strided_batched<float>(cublasHandle_t handle,
+                                                       cublasOperation_t transa,
+                                                       cublasOperation_t transb,
+                                                       int m,
+                                                       int n,
+                                                       int k,
+                                                       const float *alpha,
+                                                       const float *A_data,
+                                                       int lda,
+                                                       long long int strideA,
+                                                       const float *B_data,
+                                                       int ldb,
+                                                       long long int strideB,
+                                                       const float *beta,
+                                                       float *C_data,
+                                                       int ldc,
+                                                       long long int strideC,
+                                                       int batchCount) {
+    return cublasSgemmStridedBatched(
+            handle, transa,
+            transb,   // A, B transpose flag
+            m, n, k,  // dimensions
+            alpha, static_cast<const float *>(A_data), lda, strideA,
+            static_cast<const float *>(B_data),
+            ldb,  // input and their leading dims
+            strideB, beta, static_cast<float *>(C_data), ldc, strideC,
+            batchCount);
+}
+
+template <>
 inline cublasStatus_t gemm_cuda<double>(cublasHandle_t handle,
                                         cublasOperation_t transa,
                                         cublasOperation_t transb,
@@ -153,6 +272,37 @@ inline cublasStatus_t gemm_cuda<double>(cublasHandle_t handle,
                        static_cast<const double *>(B_data),
                        ldb,  // input and their leading dims
                        beta, static_cast<double *>(C_data), ldc);
+}
+
+template <>
+inline cublasStatus_t gemm_cuda_strided_batched<double>(
+        cublasHandle_t handle,
+        cublasOperation_t transa,
+        cublasOperation_t transb,
+        int m,
+        int n,
+        int k,
+        const double *alpha,
+        const double *A_data,
+        int lda,
+        long long int strideA,
+        const double *B_data,
+        int ldb,
+        long long int strideB,
+        const double *beta,
+        double *C_data,
+        int ldc,
+        long long int strideC,
+        int batchCount) {
+    return cublasDgemmStridedBatched(
+            handle, transa,
+            transb,   // A, B transpose flag
+            m, n, k,  // dimensions
+            alpha, static_cast<const double *>(A_data), lda, strideA,
+            static_cast<const double *>(B_data),
+            ldb,  // input and their leading dims
+            strideB, beta, static_cast<double *>(C_data), ldc, strideC,
+            batchCount);
 }
 
 template <>

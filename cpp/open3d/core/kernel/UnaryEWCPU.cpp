@@ -117,6 +117,12 @@ static void CPUExpElementKernel(const void* src, void* dst) {
 }
 
 template <typename scalar_t>
+static void CPULogElementKernel(const void* src, void* dst) {
+    *static_cast<scalar_t*>(dst) =
+            static_cast<scalar_t>(std::log(*static_cast<const scalar_t*>(src)));
+}
+
+template <typename scalar_t>
 static void CPUAbsElementKernel(const void* src, void* dst) {
     *static_cast<scalar_t*>(dst) = static_cast<scalar_t>(
             std::abs(static_cast<double>(*static_cast<const scalar_t*>(src))));
@@ -328,6 +334,11 @@ void UnaryEWCPU(const Tensor& src, Tensor& dst, UnaryEWOpCode op_code) {
                             OPEN3D_TEMPLATE_VECTORIZED(scalar_t,
                                                        CPUExpElementKernel,
                                                        &ispc_indexer));
+                    break;
+                case UnaryEWOpCode::Log:
+                    assert_dtype_is_float(src_dtype);
+                    LaunchUnaryEWKernel<scalar_t, scalar_t>(
+                            indexer, CPULogElementKernel<scalar_t>);
                     break;
                 case UnaryEWOpCode::Abs:
                     LaunchUnaryEWKernel<scalar_t, scalar_t>(

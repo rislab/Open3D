@@ -94,6 +94,13 @@ static OPEN3D_HOST_DEVICE void CUDAExpElementKernel(const void* src,
 }
 
 template <typename scalar_t>
+static OPEN3D_HOST_DEVICE void CUDALogElementKernel(const void* src,
+                                                    void* dst) {
+    *static_cast<scalar_t*>(dst) = static_cast<scalar_t>(
+            log(static_cast<double>(*static_cast<const scalar_t*>(src))));
+}
+
+template <typename scalar_t>
 static OPEN3D_HOST_DEVICE void CUDAAbsElementKernel(const void* src,
                                                     void* dst) {
     *static_cast<scalar_t*>(dst) = static_cast<scalar_t>(
@@ -342,6 +349,14 @@ void UnaryEWCUDA(const Tensor& src, Tensor& dst, UnaryEWOpCode op_code) {
                             src_device, indexer,
                             [] OPEN3D_HOST_DEVICE(const void* src, void* dst) {
                                 CUDAExpElementKernel<scalar_t>(src, dst);
+                            });
+                    break;
+                case UnaryEWOpCode::Log:
+                    assert_dtype_is_float(src_dtype);
+                    LaunchUnaryEWKernel<scalar_t, scalar_t>(
+                            src_device, indexer,
+                            [] OPEN3D_HOST_DEVICE(const void* src, void* dst) {
+                                CUDALogElementKernel<scalar_t>(src, dst);
                             });
                     break;
                 case UnaryEWOpCode::Abs:

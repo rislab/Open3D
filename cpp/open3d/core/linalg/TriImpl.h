@@ -17,6 +17,8 @@ void TriuCPU(const Tensor& A, Tensor& output, const int diagonal = 0);
 
 void TrilCPU(const Tensor& A, Tensor& output, const int diagonal = 0);
 
+void Tril3DCPU(const Tensor& A, Tensor& output, const int diagonal = 0);
+
 void TriulCPU(const Tensor& A,
               Tensor& upper,
               Tensor& lower,
@@ -26,6 +28,8 @@ void TriulCPU(const Tensor& A,
 void TriuCUDA(const Tensor& A, Tensor& output, const int diagonal = 0);
 
 void TrilCUDA(const Tensor& A, Tensor& output, const int diagonal = 0);
+
+void Tril3DCUDA(const Tensor& A, Tensor& output, const int diagonal = 0);
 
 void TriulCUDA(const Tensor& A,
                Tensor& upper,

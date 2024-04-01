@@ -49,6 +49,30 @@ void TrilCUDA(const Tensor &A, Tensor &output, const int diagonal) {
     });
 }
 
+void Tril3DCUDA(const Tensor &A, Tensor &output, const int diagonal) {
+    DISPATCH_DTYPE_TO_TEMPLATE(A.GetDtype(), [&]() {
+        const scalar_t *A_ptr = static_cast<const scalar_t *>(A.GetDataPtr());
+        scalar_t *output_ptr = static_cast<scalar_t *>(output.GetDataPtr());
+
+        SizeVector A_shape = A.GetShape();
+        int batch_size = A_shape[0];
+        int cols = A_shape[1];
+        int n = batch_size * cols * cols;
+
+        core::ParallelFor(
+                A.GetDevice(), n, [=] OPEN3D_DEVICE(int64_t workload_idx) {
+                    const int64_t idx = workload_idx / (cols * cols);
+                    const int64_t idy = (workload_idx / cols) % cols;
+                    const int64_t idz = workload_idx % cols;
+
+                    if (idz - idy <= diagonal) {
+                        output_ptr[workload_idx] =
+                                A_ptr[(idx * cols + idy) * cols + idz];
+                    }
+                });
+    });
+}
+
 void TriulCUDA(const Tensor &A,
                Tensor &upper,
                Tensor &lower,

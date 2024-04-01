@@ -25,6 +25,15 @@ inline OPEN3D_CPU_LINALG_INT getrf_cpu(int layout,
 }
 
 template <typename scalar_t>
+inline OPEN3D_CPU_LINALG_INT potrf_cpu(int layout,
+                                       OPEN3D_CPU_LINALG_INT n,
+                                       scalar_t* A_data,
+                                       OPEN3D_CPU_LINALG_INT lda) {
+    utility::LogError("Unsupported data type.");
+    return -1;
+}
+
+template <typename scalar_t>
 inline OPEN3D_CPU_LINALG_INT getri_cpu(int layout,
                                        OPEN3D_CPU_LINALG_INT n,
                                        scalar_t* A_data,
@@ -43,6 +52,18 @@ inline OPEN3D_CPU_LINALG_INT gesv_cpu(int layout,
                                       OPEN3D_CPU_LINALG_INT* ipiv_data,
                                       scalar_t* B_data,
                                       OPEN3D_CPU_LINALG_INT ldb) {
+    utility::LogError("Unsupported data type.");
+    return -1;
+}
+
+template <typename scalar_t>
+inline OPEN3D_CPU_LINALG_INT potrs_cpu(int layout,
+                                       OPEN3D_CPU_LINALG_INT n,
+                                       OPEN3D_CPU_LINALG_INT m,
+                                       scalar_t* A_data,
+                                       OPEN3D_CPU_LINALG_INT lda,
+                                       scalar_t* B_data,
+                                       OPEN3D_CPU_LINALG_INT ldb) {
     utility::LogError("Unsupported data type.");
     return -1;
 }
@@ -99,6 +120,44 @@ inline OPEN3D_CPU_LINALG_INT getrf_cpu<double>(
         OPEN3D_CPU_LINALG_INT lda,
         OPEN3D_CPU_LINALG_INT* ipiv_data) {
     return LAPACKE_dgetrf(layout, m, n, A_data, lda, ipiv_data);
+}
+
+template <>
+inline OPEN3D_CPU_LINALG_INT potrf_cpu<float>(int layout,
+                                              OPEN3D_CPU_LINALG_INT n,
+                                              float* A_data,
+                                              OPEN3D_CPU_LINALG_INT lda) {
+    return LAPACKE_spotrf(layout, 'L', n, A_data, lda);
+}
+
+template <>
+inline OPEN3D_CPU_LINALG_INT potrs_cpu<float>(int layout,
+                                              OPEN3D_CPU_LINALG_INT n,
+                                              OPEN3D_CPU_LINALG_INT m,
+                                              float* A_data,
+                                              OPEN3D_CPU_LINALG_INT lda,
+                                              float* B_data,
+                                              OPEN3D_CPU_LINALG_INT ldb) {
+    return LAPACKE_spotrs(layout, 'L', n, m, A_data, lda, B_data, ldb);
+}
+
+template <>
+inline OPEN3D_CPU_LINALG_INT potrs_cpu<double>(int layout,
+                                               OPEN3D_CPU_LINALG_INT n,
+                                               OPEN3D_CPU_LINALG_INT m,
+                                               double* A_data,
+                                               OPEN3D_CPU_LINALG_INT lda,
+                                               double* B_data,
+                                               OPEN3D_CPU_LINALG_INT ldb) {
+    return LAPACKE_dpotrs(layout, 'L', n, m, A_data, lda, B_data, ldb);
+}
+
+template <>
+inline OPEN3D_CPU_LINALG_INT potrf_cpu<double>(int layout,
+                                               OPEN3D_CPU_LINALG_INT n,
+                                               double* A_data,
+                                               OPEN3D_CPU_LINALG_INT lda) {
+    return LAPACKE_dpotrf(layout, 'L', n, A_data, lda);
 }
 
 template <>
@@ -216,6 +275,15 @@ inline cusolverStatus_t getrf_cuda_buffersize(
 }
 
 template <typename scalar_t>
+inline cusolverStatus_t potrf_cuda_buffersize(cusolverDnHandle_t handle,
+                                              int n,
+                                              int lda,
+                                              int* len) {
+    utility::LogError("Unsupported data type.");
+    return CUSOLVER_STATUS_INTERNAL_ERROR;
+}
+
+template <typename scalar_t>
 inline cusolverStatus_t getrf_cuda(cusolverDnHandle_t handle,
                                    int m,
                                    int n,
@@ -229,6 +297,29 @@ inline cusolverStatus_t getrf_cuda(cusolverDnHandle_t handle,
 }
 
 template <typename scalar_t>
+inline cusolverStatus_t potrf_cuda(cusolverDnHandle_t handle,
+                                   int n,
+                                   scalar_t* A_data,
+                                   int lda,
+                                   scalar_t* workspace,
+                                   int Lwork,
+                                   int* dinfo) {
+    utility::LogError("Unsupported data type.");
+    return CUSOLVER_STATUS_INTERNAL_ERROR;
+}
+
+template <typename scalar_t>
+inline cusolverStatus_t potrf_cuda_batched(cusolverDnHandle_t handle,
+                                           int n,
+                                           scalar_t** A_data,
+                                           int lda,
+                                           int* infoArray,
+                                           int batch_size) {
+    utility::LogError("Unsupported data type.");
+    return CUSOLVER_STATUS_INTERNAL_ERROR;
+}
+
+template <typename scalar_t>
 inline cusolverStatus_t getrs_cuda(cusolverDnHandle_t handle,
                                    cublasOperation_t trans,
                                    int n,
@@ -236,6 +327,19 @@ inline cusolverStatus_t getrs_cuda(cusolverDnHandle_t handle,
                                    const scalar_t* A_data,
                                    int lda,
                                    const int* ipiv_data,
+                                   scalar_t* B_data,
+                                   int ldb,
+                                   int* dinfo) {
+    utility::LogError("Unsupported data type.");
+    return CUSOLVER_STATUS_INTERNAL_ERROR;
+}
+
+template <typename scalar_t>
+inline cusolverStatus_t potrs_cuda(cusolverDnHandle_t handle,
+                                   int n,
+                                   int nrhs,
+                                   const scalar_t* A_data,
+                                   int lda,
                                    scalar_t* B_data,
                                    int ldb,
                                    int* dinfo) {
@@ -340,6 +444,26 @@ inline cusolverStatus_t getrf_cuda_buffersize<double>(
 }
 
 template <>
+inline cusolverStatus_t potrf_cuda_buffersize<float>(cusolverDnHandle_t handle,
+                                                     int n,
+                                                     int lda,
+                                                     int* len) {
+    return cusolverDnSpotrf_bufferSize(handle,
+                                       cublasFillMode_t::CUBLAS_FILL_MODE_LOWER,
+                                       n, NULL, lda, len);
+}
+
+template <>
+inline cusolverStatus_t potrf_cuda_buffersize<double>(cusolverDnHandle_t handle,
+                                                      int n,
+                                                      int lda,
+                                                      int* len) {
+    return cusolverDnDpotrf_bufferSize(handle,
+                                       cublasFillMode_t::CUBLAS_FILL_MODE_LOWER,
+                                       n, NULL, lda, len);
+}
+
+template <>
 inline cusolverStatus_t getrf_cuda<float>(cusolverDnHandle_t handle,
                                           int m,
                                           int n,
@@ -353,6 +477,30 @@ inline cusolverStatus_t getrf_cuda<float>(cusolverDnHandle_t handle,
 }
 
 template <>
+inline cusolverStatus_t potrf_cuda<float>(cusolverDnHandle_t handle,
+                                          int n,
+                                          float* A_data,
+                                          int lda,
+                                          float* workspace,
+                                          int Lwork,
+                                          int* dinfo) {
+    return cusolverDnSpotrf(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n,
+                            A_data, lda, workspace, Lwork, dinfo);
+}
+
+template <>
+inline cusolverStatus_t potrf_cuda_batched<float>(cusolverDnHandle_t handle,
+                                                  int n,
+                                                  float** A_data,
+                                                  int lda,
+                                                  int* infoArray,
+                                                  int batch_size) {
+    return cusolverDnSpotrfBatched(handle,
+                                   cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n,
+                                   A_data, lda, infoArray, batch_size);
+}
+
+template <>
 inline cusolverStatus_t getrf_cuda<double>(cusolverDnHandle_t handle,
                                            int m,
                                            int n,
@@ -363,6 +511,30 @@ inline cusolverStatus_t getrf_cuda<double>(cusolverDnHandle_t handle,
                                            int* dinfo) {
     return cusolverDnDgetrf(handle, m, n, A_data, lda, workspace, ipiv_data,
                             dinfo);
+}
+
+template <>
+inline cusolverStatus_t potrf_cuda<double>(cusolverDnHandle_t handle,
+                                           int n,
+                                           double* A_data,
+                                           int lda,
+                                           double* workspace,
+                                           int Lwork,
+                                           int* dinfo) {
+    return cusolverDnDpotrf(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n,
+                            A_data, lda, workspace, Lwork, dinfo);
+}
+
+template <>
+inline cusolverStatus_t potrf_cuda_batched<double>(cusolverDnHandle_t handle,
+                                                   int n,
+                                                   double** A_data,
+                                                   int lda,
+                                                   int* infoArray,
+                                                   int batch_size) {
+    return cusolverDnDpotrfBatched(handle,
+                                   cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n,
+                                   A_data, lda, infoArray, batch_size);
 }
 
 template <>
@@ -393,6 +565,32 @@ inline cusolverStatus_t getrs_cuda<double>(cusolverDnHandle_t handle,
                                            int* dinfo) {
     return cusolverDnDgetrs(handle, trans, n, nrhs, A_data, lda, ipiv_data,
                             B_data, ldb, dinfo);
+}
+
+template <>
+inline cusolverStatus_t potrs_cuda<float>(cusolverDnHandle_t handle,
+                                          int n,
+                                          int nrhs,
+                                          const float* A_data,
+                                          int lda,
+                                          float* B_data,
+                                          int ldb,
+                                          int* dinfo) {
+    return cusolverDnSpotrs(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n,
+                            nrhs, A_data, lda, B_data, ldb, dinfo);
+}
+
+template <>
+inline cusolverStatus_t potrs_cuda<double>(cusolverDnHandle_t handle,
+                                           int n,
+                                           int nrhs,
+                                           const double* A_data,
+                                           int lda,
+                                           double* B_data,
+                                           int ldb,
+                                           int* dinfo) {
+    return cusolverDnDpotrs(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, n,
+                            nrhs, A_data, lda, B_data, ldb, dinfo);
 }
 
 template <>
