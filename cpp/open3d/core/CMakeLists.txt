@@ -47,17 +47,14 @@ target_sources(core PRIVATE
     linalg/Inverse.cpp
     linalg/LeastSquares.cpp
     linalg/LU.cpp
-    linalg/LUCPU.cpp
     linalg/LLT.cpp
     linalg/LLTCPU.cpp
     linalg/LLTBatched.cpp
     linalg/LLTCPUBatched.cpp
     linalg/Matmul.cpp
     linalg/MatmulBatched.cpp
-    linalg/MatmulCPU.cpp
     linalg/Solve.cpp
     linalg/SolveLLT.cpp
-    linalg/SolveCPU.cpp
     linalg/SolveCPULLT.cpp
     linalg/SolveLLTBatched.cpp
     linalg/SolveCPULLTBatched.cpp
