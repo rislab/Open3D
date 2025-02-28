@@ -1,12 +1,13 @@
 // ----------------------------------------------------------------------------
 // -                        Open3D: www.open3d.org                            -
 // ----------------------------------------------------------------------------
-// Copyright (c) 2018-2023 www.open3d.org
+// Copyright (c) 2018-2024 www.open3d.org
 // SPDX-License-Identifier: MIT
 // ----------------------------------------------------------------------------
 
 #include <png.h>
 
+#include "open3d/core/Dtype.h"
 #include "open3d/t/io/ImageIO.h"
 #include "open3d/utility/Logging.h"
 
@@ -41,6 +42,7 @@ bool ReadImageFromPNG(const std::string &filename, geometry::Image &image) {
     pngimage.version = PNG_IMAGE_VERSION;
     if (png_image_begin_read_from_file(&pngimage, filename.c_str()) == 0) {
         utility::LogWarning("Read PNG failed: unable to parse header.");
+        image.Clear();
         return false;
     }
 
@@ -64,6 +66,7 @@ bool ReadImageFromPNG(const std::string &filename, geometry::Image &image) {
         utility::LogWarning("Read PNG failed: unable to read file: {}",
                             filename);
         utility::LogWarning("PNG error: {}", pngimage.message);
+        image.Clear();
         return false;
     }
     return true;
@@ -76,7 +79,8 @@ bool WriteImageToPNG(const std::string &filename,
         utility::LogWarning("Write PNG failed: image has no data.");
         return false;
     }
-    if (image.GetDtype() != core::UInt8 && image.GetDtype() != core::UInt16) {
+    if (image.GetDtype() != core::Bool && image.GetDtype() != core::UInt8 &&
+        image.GetDtype() != core::UInt16) {
         utility::LogWarning("Write PNG failed: unsupported image data.");
         return false;
     }
@@ -141,7 +145,7 @@ bool WriteImageToPNGInMemory(std::vector<uint8_t> &buffer,
     buffer.resize(mem_bytes);
     if (png_image_write_to_memory(&pngimage, &buffer[0], &mem_bytes, 0,
                                   image.GetDataPtr(), 0, nullptr) == 0) {
-        utility::LogWarning("Unable to encode to encode to PNG in memory.");
+        utility::LogWarning("Unable to encode to PNG in memory.");
         return false;
     }
     return true;
