@@ -11,6 +11,7 @@ if [[ "$DEVELOPER_BUILD" != "OFF" ]]; then # Validate input coming from GHA inpu
 fi
 BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-OFF}
 NPROC=${NPROC:-$(getconf _NPROCESSORS_ONLN)} # POSIX: MacOS + Linux
+NPROC=$((NPROC+2))  # run nproc+2 jobs to speed up the build
 if [ -z "${BUILD_CUDA_MODULE:+x}" ]; then
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         BUILD_CUDA_MODULE=ON
@@ -76,7 +77,7 @@ install_python_dependencies() {
     fi
     if [ "$BUILD_PYTORCH_OPS" == "ON" ]; then # ML/requirements-torch.txt
         if [[ "$OSTYPE" == "linux-gnu"* && "$BUILD_SYCL_MODULE" == "OFF" ]]; then
-            python -m pip install -U "${TORCH_GLNX}" -f "$TORCH_REPO_URL" 
+            python -m pip install -U "${TORCH_GLNX}" -f "$TORCH_REPO_URL"
             python -m pip install tensorboard
         elif [[ "$OSTYPE" == "linux-gnu"* && "$BUILD_SYCL_MODULE" == "ON" ]]; then
             python -m pip install -U "${TORCH_GLNX}.cxx11.abi" -i "$TORCH_CXX11_URL"
@@ -376,7 +377,8 @@ install_docs_dependencies() {
 # Build documentation
 # Usage: build_docs $DEVELOPER_BUILD
 build_docs() {
-    NPROC=$(nproc)
+    echo "Using cmake: $(command -v cmake)"
+    cmake --version
     echo NPROC="$NPROC"
     mkdir -p build
     cd build
